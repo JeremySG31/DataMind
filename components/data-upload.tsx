@@ -21,6 +21,14 @@ export function DataUpload({ onUpload, isLoading, error }: DataUploadProps) {
     setIsDragActive(e.type === 'dragenter' || e.type === 'dragover');
   }, []);
 
+  const isValidFile = (file: File): boolean => {
+    const validExtensions = ['.csv', '.xlsx', '.xls'];
+    const validMimes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+    
+    return validExtensions.some(ext => file.name.toLowerCase().endsWith(ext)) ||
+           validMimes.includes(file.type);
+  };
+
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
@@ -30,10 +38,10 @@ export function DataUpload({ onUpload, isLoading, error }: DataUploadProps) {
       const files = e.dataTransfer.files;
       if (files && files[0]) {
         const file = files[0];
-        if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+        if (isValidFile(file)) {
           onUpload(file);
         } else {
-          alert('Por favor, sube un archivo CSV válido');
+          alert('Por favor, sube un archivo válido (CSV, XLSX o XLS)');
         }
       }
     },
@@ -76,12 +84,12 @@ export function DataUpload({ onUpload, isLoading, error }: DataUploadProps) {
 
           <h3 className="text-lg font-semibold mb-2">Carga tu archivo de datos</h3>
           <p className="text-muted-foreground mb-4">
-            Arrastra y suelta un archivo CSV aquí o haz clic para seleccionar
+            Arrastra y suelta un archivo (CSV, XLSX o XLS) aquí o haz clic para seleccionar
           </p>
 
           <input
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx,.xls"
             onChange={handleFileInput}
             disabled={isLoading}
             className="hidden"
