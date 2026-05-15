@@ -41,6 +41,61 @@ cp .env.example .env.local
 
 4. **Reinicia el servidor** y ¡listo!
 
+## Configuración de Firebase (Autenticación)
+
+DataMind usa **Firebase** para gestionar usuarios, login y registro.
+
+### Pasos:
+
+1. **Crear proyecto Firebase**:
+   - Visita [https://console.firebase.google.com](https://console.firebase.google.com)
+   - Haz clic en "Agregar proyecto"
+   - Nombre: "datamind" (o el que prefieras)
+   - Desactiva Google Analytics
+   - Haz clic en "Crear proyecto"
+
+2. **Habilitar Authentication**:
+   - En el menú lateral, ve a "Authentication"
+   - Haz clic en "Empezar"
+   - Selecciona "Email/Contraseña"
+   - Activa "Email/Contraseña"
+   - Guarda
+
+3. **Crear Firestore Database**:
+   - Ve a "Firestore Database" en el menú
+   - Haz clic en "Crear base de datos"
+   - Selecciona "Comenzar en modo de prueba"
+   - Elige la ubicación (usa la más cercana)
+   - Haz clic en "Crear"
+
+4. **Obtener credenciales**:
+   - Ve a Configuración del proyecto (ícono de engranaje arriba)
+   - Baja hasta "Tus apps"
+   - Haz clic en "Agregar app" → "Web"
+   - Copia el config JSON
+   - Extrae estos valores:
+     ```
+     apiKey → NEXT_PUBLIC_FIREBASE_API_KEY
+     authDomain → NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+     projectId → NEXT_PUBLIC_FIREBASE_PROJECT_ID
+     storageBucket → NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+     messagingSenderId → NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+     appId → NEXT_PUBLIC_FIREBASE_APP_ID
+     ```
+
+5. **Configurar variables de entorno**:
+   ```bash
+   # Edita .env.local y agrega:
+   NEXT_PUBLIC_FIREBASE_API_KEY=tu_valor
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=tu_valor
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=tu_valor
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=tu_valor
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=tu_valor
+   NEXT_PUBLIC_FIREBASE_APP_ID=tu_valor
+   ```
+
+6. **Reinicia el servidor** y ¡listo!
+
 ## Características
 
 ✅ Carga de archivos CSV  

@@ -3,13 +3,18 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers';
-import { LandingPage } from '@/components/landing-page';
 import { Dashboard } from '@/components/dashboard';
 import { Loader2 } from 'lucide-react';
 
-export default function Home() {
+export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuthContext();
+  const { isAuthenticated, isLoading, user } = useAuthContext();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -22,5 +27,9 @@ export default function Home() {
     );
   }
 
-  return isAuthenticated ? <Dashboard /> : <LandingPage />;
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return <Dashboard />;
 }

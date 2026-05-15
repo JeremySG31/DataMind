@@ -2,10 +2,11 @@
 
 **Analista de Datos Inteligente impulsado por IA**
 
-Carga tus archivos CSV, haz preguntas en lenguaje natural y obtén análisis, visualizaciones e insights instantáneamente. Completamente gratis, sin configuraciones complicadas.
+Carga tus archivos CSV, haz preguntas en lenguaje natural y obtén análisis, visualizaciones e insights instantáneamente. Con autenticación Firebase, análisis IA con OpenRouter. Completamente gratis, sin configuraciones complicadas.
 
 ## ✨ Características
 
+- **🔐 Autenticación**: Login y registro con Firebase (completamente gratis)
 - **📤 Upload Fácil**: Arrastra y suelta archivos CSV o haz clic para seleccionar
 - **🤖 Análisis IA**: Obtén insights automáticos analizados por inteligencia artificial
 - **📈 Visualizaciones**: Gráficos interactivos (línea, barra, scatter, pie) que se adaptan automáticamente
@@ -13,7 +14,7 @@ Carga tus archivos CSV, haz preguntas en lenguaje natural y obtén análisis, vi
 - **📋 Tabla de Datos**: Explora, busca y ordena tus datos
 - **⚡ Estadísticas**: Medias, medianas, desviación estándar y más
 - **🎨 Diseño Moderno**: Interfaz oscura, profesional y responsiva
-- **💰 Completamente Gratis**: Usa OpenRouter sin costo alguno
+- **💰 Completamente Gratis**: Usa OpenRouter + Firebase sin costo alguno
 
 ## 🚀 Inicio Rápido
 
@@ -36,11 +37,13 @@ pnpm dev
 
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-## ⚙️ Configuración OpenRouter
+## ⚙️ Configuración
+
+DataMind necesita dos configuraciones simples (ambas gratis):
+
+### 1️⃣ OpenRouter (IA - OBLIGATORIO)
 
 DataMind usa **OpenRouter** para acceso a IA completamente gratis.
-
-### Pasos:
 
 1. **Crear cuenta gratuita**
    - Ve a [https://openrouter.io](https://openrouter.io)
@@ -59,11 +62,19 @@ DataMind usa **OpenRouter** para acceso a IA completamente gratis.
    # OPENROUTER_API_KEY=tu_clave_aqui
    ```
 
-4. **Reiniciar servidor**
-   ```bash
-   # Presiona Ctrl+C y vuelve a ejecutar:
-   pnpm dev
-   ```
+### 2️⃣ Firebase (Autenticación - RECOMENDADO)
+
+Para acceso con login y registro, configura Firebase:
+
+1. **Lee la guía completa**: Abre `FIREBASE_SETUP.md` (toma ~15 minutos)
+2. **O sáltalo por ahora**: La app funciona sin autenticación
+
+### ✅ Reiniciar servidor
+
+```bash
+# Presiona Ctrl+C y vuelve a ejecutar:
+pnpm dev
+```
 
 ¡Listo! Ahora puedes usar DataMind sin límites.
 
@@ -122,8 +133,10 @@ Valor3,150,Más,2024
 - **Gráficos**: Recharts
 - **Animaciones**: Framer Motion
 - **IA**: AI SDK v6 + OpenRouter
+- **Autenticación**: Firebase Auth (Email/Password)
+- **Base de Datos**: Firestore (opcional)
 - **Análisis**: simple-statistics + papaparse
-- **Estado**: React Hooks + SWR (para datos)
+- **Estado**: React Hooks + Context API
 
 ## 🤖 Modelos de IA Disponibles
 

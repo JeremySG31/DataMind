@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateText } from 'ai';
-import { createOpenRouter } from '@ai-sdk/openrouter';
+import { generateText, openai } from 'ai';
 
-const openrouter = createOpenRouter({
+// Usar OpenRouter como proveedor OpenAI compatible
+const openAiCompatible = openai.chat('mistral-7b-instruct', {
+  baseURL: 'https://openrouter.io/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
@@ -44,10 +45,9 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openrouter('mistral-7b-instruct'),
-      prompt,
-      temperature: 0.7,
-      maxTokens: 500,
+      model: openAiCompatible,
+      prompt: analysisPrompt,
+      maxTokens: 2000,
     });
 
     // Parsear respuesta JSON
