@@ -13,7 +13,7 @@ import { Visualization3D } from './visualization-3d';
 import { ExportAnalysis } from './export-analysis';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { BarChart3, MessageSquare, Table, RotateCcw, Loader2, Brain, Cube, Download } from 'lucide-react';
+import { BarChart3, MessageSquare, Table, RotateCcw, Loader2, Brain, Box, Download } from 'lucide-react';
 
 interface DashboardProps {
   dataContext: DataContext;
@@ -132,7 +132,7 @@ export function Dashboard({ dataContext, onClear }: DashboardProps) {
             value="3d"
             className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-cyan-600 data-[state=active]:bg-transparent"
           >
-            <Cube className="mr-2 h-4 w-4" />
+            <Box className="mr-2 h-4 w-4" />
             Visualización 3D
           </TabsTrigger>
           <TabsTrigger

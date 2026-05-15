@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Cube } from 'lucide-react';
+import { Box } from 'lucide-react';
 import {
   createScatter3DData,
   formatScatter3DForPlotly,
@@ -132,7 +132,7 @@ export function Visualization3D({ data, columns }: Visualization3DProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Cube className="h-5 w-5 text-cyan-500" />
+            <Box className="h-5 w-5 text-cyan-500" />
             Visualizaciones 3D Interactivas
           </CardTitle>
           <CardDescription>Explora tus datos en 3 dimensiones</CardDescription>

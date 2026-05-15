@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateText, openai } from 'ai';
+import { generateText } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
 
 // Usar OpenRouter como proveedor OpenAI compatible
-const openAiCompatible = openai.chat('mistral-7b-instruct', {
+const openrouter = createOpenAI({
   baseURL: 'https://openrouter.io/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
 });
@@ -45,8 +46,8 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openAiCompatible,
-      prompt: analysisPrompt,
+      model: openrouter('mistral-7b-instruct'),
+      prompt: prompt,
       maxTokens: 2000,
     });
 
