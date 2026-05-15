@@ -8,9 +8,12 @@ import { AnalysisResults } from './analysis-results';
 import { DataVisualizations } from './data-visualizations';
 import { DataTable } from './data-table';
 import { ChatInterface } from './chat-interface';
+import { MLAnalysis } from './ml-analysis';
+import { Visualization3D } from './visualization-3d';
+import { ExportAnalysis } from './export-analysis';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion } from 'framer-motion';
-import { BarChart3, MessageSquare, Table, RotateCcw, Loader2 } from 'lucide-react';
+import { BarChart3, MessageSquare, Table, RotateCcw, Loader2, Brain, Cube, Download } from 'lucide-react';
 
 interface DashboardProps {
   dataContext: DataContext;
@@ -103,7 +106,7 @@ export function Dashboard({ dataContext, onClear }: DashboardProps) {
 
       {/* Tabs de exploración */}
       <Tabs defaultValue="visualizations" className="w-full">
-        <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 h-auto gap-8">
+        <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 h-auto gap-8 flex-wrap">
           <TabsTrigger
             value="visualizations"
             className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent"
@@ -116,14 +119,35 @@ export function Dashboard({ dataContext, onClear }: DashboardProps) {
             className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent"
           >
             <Table className="mr-2 h-4 w-4" />
-            Tabla de datos
+            Tabla
+          </TabsTrigger>
+          <TabsTrigger
+            value="ml"
+            className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-purple-600 data-[state=active]:bg-transparent"
+          >
+            <Brain className="mr-2 h-4 w-4" />
+            Machine Learning
+          </TabsTrigger>
+          <TabsTrigger
+            value="3d"
+            className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-cyan-600 data-[state=active]:bg-transparent"
+          >
+            <Cube className="mr-2 h-4 w-4" />
+            Visualización 3D
+          </TabsTrigger>
+          <TabsTrigger
+            value="export"
+            className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-green-600 data-[state=active]:bg-transparent"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar
           </TabsTrigger>
           <TabsTrigger
             value="chat"
             className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent"
           >
             <MessageSquare className="mr-2 h-4 w-4" />
-            Chat con IA
+            Chat
           </TabsTrigger>
         </TabsList>
 
@@ -143,6 +167,40 @@ export function Dashboard({ dataContext, onClear }: DashboardProps) {
             <DataTable
               data={dataContext.data}
               columns={dataContext.columns}
+            />
+          </TabsContent>
+
+          <TabsContent value="ml" className="mt-6">
+            <MLAnalysis 
+              data={Object.fromEntries(
+                dataContext.columns.map(col => [
+                  col,
+                  dataContext.data.map((row: any) => typeof row[col] === 'number' ? row[col] : 0)
+                ])
+              )}
+              columns={dataContext.columns}
+            />
+          </TabsContent>
+
+          <TabsContent value="3d" className="mt-6">
+            <Visualization3D 
+              data={Object.fromEntries(
+                dataContext.columns.map(col => [
+                  col,
+                  dataContext.data.map((row: any) => typeof row[col] === 'number' ? row[col] : 0)
+                ])
+              )}
+              columns={dataContext.columns}
+            />
+          </TabsContent>
+
+          <TabsContent value="export" className="mt-6">
+            <ExportAnalysis
+              data={dataContext.data}
+              datasetName={dataContext.filename || 'dataset'}
+              analysisType="comprehensive"
+              statistics={aiAnalysis?.statistics || {}}
+              insights={aiAnalysis?.insights || []}
             />
           </TabsContent>
 
