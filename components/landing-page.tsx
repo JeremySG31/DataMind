@@ -8,7 +8,18 @@ import { useAuthContext } from '@/app/providers';
 
 export function LandingPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, loginAsGuest } = useAuthContext();
+
+  const handleGuestAccess = async () => {
+    try {
+      if (!isAuthenticated) {
+        await loginAsGuest();
+      }
+      router.push('/dashboard');
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const features = [
     {
@@ -139,9 +150,12 @@ export function LandingPage() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="inline-block"
           >
-            <div className="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold cursor-default">
+            <Button
+              onClick={handleGuestAccess}
+              className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer"
+            >
               Comienza cargando un archivo CSV
-            </div>
+            </Button>
           </motion.div>
         </motion.div>
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,15 +76,24 @@ export async function GET(request: NextRequest) {
     }
 
     const analysisRef = doc(db, 'analyses', analysisId);
-    const analysisSnap = await analysisRef.get?.() || { exists: () => false };
+    const analysisSnap = await getDoc(analysisRef);
 
-    // Nota: En un entorno real usarías getDoc aquí
-    // Esta es una simplificación para el ejemplo
+    if (!analysisSnap.exists()) {
+      return NextResponse.json(
+        { error: 'Análisis no encontrado' },
+        { status: 404 }
+      );
+    }
 
-    return NextResponse.json(
-      { error: 'No implementado completamente' },
-      { status: 501 }
-    );
+    const data = analysisSnap.data();
+    if (!data?.isPublic) {
+      return NextResponse.json(
+        { error: 'Este análisis no es público' },
+        { status: 403 }
+      );
+    }
+
+    return NextResponse.json(data, { status: 200 });
   } catch (error: any) {
     console.error('Error obteniendo análisis compartido:', error);
     return NextResponse.json(

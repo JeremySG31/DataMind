@@ -1,15 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers';
 import { LandingPage } from '@/components/landing-page';
-import { Dashboard } from '@/components/dashboard';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuthContext();
+  const { isLoading } = useAuthContext();
 
   if (isLoading) {
     return (
@@ -22,5 +18,5 @@ export default function Home() {
     );
   }
 
-  return isAuthenticated ? <Dashboard /> : <LandingPage />;
+  return <LandingPage />;
 }

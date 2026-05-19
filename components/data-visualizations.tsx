@@ -116,114 +116,122 @@ export function DataVisualizations({ data, columns }: DataVisualizationsProps) {
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         <Card className="p-6 bg-background/50 border-muted-foreground/20">
-          <ResponsiveContainer width="100%" height={400}>
+          <div className="w-full h-[400px]">
             {chartType === 'line' && (
-              <LineChart data={visibleData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis stroke="rgba(255,255,255,0.5)" />
-                <YAxis stroke="rgba(255,255,255,0.5)" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                {selectedColumns.map((col, idx) => (
-                  <Line
-                    key={col}
-                    type="monotone"
-                    dataKey={col}
-                    stroke={COLORS[idx % COLORS.length]}
-                    dot={false}
-                    isAnimationActive={true}
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={visibleData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis stroke="rgba(255,255,255,0.5)" />
+                  <YAxis stroke="rgba(255,255,255,0.5)" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                    }}
                   />
-                ))}
-              </LineChart>
+                  <Legend />
+                  {selectedColumns.map((col, idx) => (
+                    <Line
+                      key={col}
+                      type="monotone"
+                      dataKey={col}
+                      stroke={COLORS[idx % COLORS.length]}
+                      dot={false}
+                      isAnimationActive={true}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
             )}
 
             {chartType === 'bar' && (
-              <BarChart data={visibleData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis stroke="rgba(255,255,255,0.5)" />
-                <YAxis stroke="rgba(255,255,255,0.5)" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                {selectedColumns.map((col, idx) => (
-                  <Bar
-                    key={col}
-                    dataKey={col}
-                    fill={COLORS[idx % COLORS.length]}
-                    isAnimationActive={true}
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={visibleData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis stroke="rgba(255,255,255,0.5)" />
+                  <YAxis stroke="rgba(255,255,255,0.5)" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                    }}
                   />
-                ))}
-              </BarChart>
+                  <Legend />
+                  {selectedColumns.map((col, idx) => (
+                    <Bar
+                      key={col}
+                      dataKey={col}
+                      fill={COLORS[idx % COLORS.length]}
+                      isAnimationActive={true}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
             )}
 
             {chartType === 'scatter' && (
-              <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis
-                  type="number"
-                  dataKey={selectedColumns[0]}
-                  stroke="rgba(255,255,255,0.5)"
-                />
-                <YAxis
-                  type="number"
-                  dataKey={selectedColumns[1]}
-                  stroke="rgba(255,255,255,0.5)"
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Scatter
-                  dataKey={selectedColumns[1]}
-                  data={visibleData}
-                  fill={COLORS[0]}
-                  isAnimationActive={true}
-                />
-              </ScatterChart>
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis
+                    type="number"
+                    dataKey={selectedColumns[0]}
+                    stroke="rgba(255,255,255,0.5)"
+                  />
+                  <YAxis
+                    type="number"
+                    dataKey={selectedColumns[1]}
+                    stroke="rgba(255,255,255,0.5)"
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Scatter
+                    dataKey={selectedColumns[1]}
+                    data={visibleData}
+                    fill={COLORS[0]}
+                    isAnimationActive={true}
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
             )}
 
             {chartType === 'pie' && numericColumns.length > 0 && (
-              <PieChart>
-                <Pie
-                  data={visibleData}
-                  dataKey={numericColumns[0]}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={120}
-                  isAnimationActive={true}
-                >
-                  {visibleData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '8px',
-                  }}
-                />
-              </PieChart>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={visibleData}
+                    dataKey={numericColumns[0]}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
+                    outerRadius={120}
+                    isAnimationActive={true}
+                  >
+                    {visibleData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(0,0,0,0.8)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             )}
-          </ResponsiveContainer>
+          </div>
         </Card>
       </motion.div>
     </div>

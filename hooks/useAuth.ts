@@ -22,9 +22,23 @@ export function useAuth() {
 
   // Escuchar cambios de autenticación
   useEffect(() => {
+    // Verificar si hay un usuario invitado guardado localmente
+    if (typeof window !== 'undefined') {
+      const storedGuest = localStorage.getItem('datamind_guest_user');
+      if (storedGuest) {
+        try {
+          setUser(JSON.parse(storedGuest));
+          setIsLoading(false);
+          return;
+        } catch (e) {
+          localStorage.removeItem('datamind_guest_user');
+        }
+      }
+    }
+
     if (!isFirebaseConfigured() || !auth) {
       setIsLoading(false);
-      setError('Firebase no está configurado. Consulta SETUP.md para más información.');
+      // No seteamos el error para no bloquear la UI si se desea usar modo demo
       return;
     }
 
@@ -95,10 +109,40 @@ export function useAuth() {
     }
   };
 
+  // Iniciar sesión como invitado (modo demo sin Firebase)
+  const loginAsGuest = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const mockUser = {
+        uid: 'guest-user-id',
+        email: 'invitado@datamind.com',
+        displayName: 'Invitado Especial',
+        emailVerified: true,
+        isAnonymous: true,
+        metadata: {},
+        providerData: [],
+      } as any;
+      
+      setUser(mockUser);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('datamind_guest_user', JSON.stringify(mockUser));
+      }
+      return mockUser;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Cerrar sesión
   const logout = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('datamind_guest_user');
+    }
+    
     if (!isFirebaseConfigured() || !auth) {
-      throw new Error('Firebase no está configurado');
+      setUser(null);
+      return;
     }
     try {
       setIsLoading(true);
@@ -120,6 +164,7 @@ export function useAuth() {
     register,
     login,
     logout,
+    loginAsGuest,
     isAuthenticated: !!user,
     isFirebaseConfigured: isFirebaseConfigured(),
   };

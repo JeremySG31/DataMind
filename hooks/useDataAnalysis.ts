@@ -52,7 +52,7 @@ export function useDataAnalysis() {
           const columns = Object.keys(data[0] || {});
           resolve({ columns, data });
         },
-        error: (error) => {
+        error: (error: any) => {
           setError(`Error al parsear CSV: ${error.message}`);
           resolve(null);
         },
@@ -111,7 +111,9 @@ export function useDataAnalysis() {
         data: processedData,
         analysis: {
           summary: `Archivo cargado: ${file.name} con ${processedData.length} filas`,
-          ...analysis,
+          statistics: analysis.statistics || {},
+          insights: analysis.insights || [],
+          recommendedCharts: analysis.recommendedCharts || [],
         },
       });
     } catch (err) {

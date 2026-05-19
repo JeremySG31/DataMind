@@ -58,7 +58,7 @@ Proporciona una respuesta clara, concisa y útil basada en el análisis del data
     const response = await generateText({
       model: openrouter('mistral-7b-instruct'),
       prompt: prompt,
-      maxTokens: 2000,
+      maxOutputTokens: 2000,
     });
 
     return NextResponse.json({

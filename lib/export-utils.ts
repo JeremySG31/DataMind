@@ -140,7 +140,7 @@ export async function captureElementAsImage(elementId: string): Promise<string> 
 }
 
 // Exportar análisis como JSON
-export function exportAnalysisAsJSON(report: AnalysisReport, fileName: string = 'analisis.json') {
+export function exportAnalysisAsJSON(report: any, fileName: string = 'analisis.json') {
   try {
     const dataStr = JSON.stringify(report, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });

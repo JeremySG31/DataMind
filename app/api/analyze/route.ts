@@ -48,7 +48,7 @@ Responde en formato JSON con las claves: summary, insights (array), recommendedC
     const response = await generateText({
       model: openrouter('mistral-7b-instruct'),
       prompt: prompt,
-      maxTokens: 2000,
+      maxOutputTokens: 2000,
     });
 
     // Parsear respuesta JSON
