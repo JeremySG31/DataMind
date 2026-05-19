@@ -270,18 +270,18 @@ function PremiumLockScreen({ title, description, icon }: { title: string, descri
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <Link href="/auth/register" passHref legacyBehavior>
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25 group w-full sm:w-auto cursor-pointer">
+          <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25 group w-full sm:w-auto cursor-pointer">
+            <Link href="/auth/register">
               <Sparkles className="mr-2 h-4 w-4" />
               Crear cuenta gratis
-            </Button>
-          </Link>
-          <Link href="/auth/login" passHref legacyBehavior>
-            <Button size="lg" variant="outline" className="border-blue-500/30 text-blue-400 hover:bg-blue-950/20 group w-full sm:w-auto cursor-pointer">
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="border-blue-500/30 text-blue-400 hover:bg-blue-950/20 group w-full sm:w-auto cursor-pointer">
+            <Link href="/auth/login">
               Iniciar sesión
               <ArrowRight className="ml-2 h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
         
         <p className="mt-8 text-xs text-muted-foreground font-medium uppercase tracking-wider opacity-70">
