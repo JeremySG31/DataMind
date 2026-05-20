@@ -6,6 +6,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/__/auth/:path*',
+        destination: 'https://datamind-app-31.firebaseapp.com/__/auth/:path*',
+      },
+    ];
+  },
 }
 
 export default nextConfig

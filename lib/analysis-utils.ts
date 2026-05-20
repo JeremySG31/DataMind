@@ -17,11 +17,19 @@ export function analyzeData(data: DataRow[], columns: string[]): Partial<Analysi
       .filter((val): val is number => typeof val === 'number');
 
     if (values.length > 0) {
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+      for (let i = 0; i < values.length; i++) {
+        const val = values[i];
+        if (val < minVal) minVal = val;
+        if (val > maxVal) maxVal = val;
+      }
+
       statistics[col] = {
         mean: ss.mean(values),
         median: ss.median(values),
-        min: Math.min(...values),
-        max: Math.max(...values),
+        min: minVal,
+        max: maxVal,
         stdDev: ss.standardDeviation(values),
       };
     }

@@ -7,8 +7,13 @@ import {
   signOut,
   onAuthStateChanged,
   User,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  signInWithPopup,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
-import { auth, isFirebaseConfigured } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db, isFirebaseConfigured } from '@/lib/firebase';
 
 export interface AuthUser extends User {
   isLoading?: boolean;
@@ -66,6 +71,21 @@ export function useAuth() {
       setIsLoading(true);
       setError(null);
       const result = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Guardar información adicional en la colección 'users' de Firestore
+      if (db && result.user) {
+        try {
+          await setDoc(doc(db, 'users', result.user.uid), {
+            uid: result.user.uid,
+            email: result.user.email,
+            createdAt: new Date().toISOString(),
+            role: 'user',
+          });
+        } catch (fsErr) {
+          console.error('Error guardando usuario en Firestore:', fsErr);
+        }
+      }
+
       return result.user;
     } catch (err: any) {
       const message =
@@ -134,6 +154,95 @@ export function useAuth() {
     }
   };
 
+  // Iniciar sesión con Google
+  const loginWithGoogle = async () => {
+    if (!isFirebaseConfigured() || !auth) {
+      throw new Error('Firebase no está configurado');
+    }
+    try {
+      setIsLoading(true);
+      setError(null);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Sincronizar con Firestore
+      if (db && result.user) {
+        try {
+          await setDoc(doc(db, 'users', result.user.uid), {
+            uid: result.user.uid,
+            email: result.user.email,
+            createdAt: new Date().toISOString(),
+            role: 'user',
+          }, { merge: true });
+        } catch (fsErr) {
+          console.error('Error guardando usuario de Google en Firestore:', fsErr);
+        }
+      }
+      return result.user;
+    } catch (err: any) {
+      setError(err.message);
+      throw new Error(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Iniciar sesión con GitHub
+  const loginWithGithub = async () => {
+    if (!isFirebaseConfigured() || !auth) {
+      throw new Error('Firebase no está configurado');
+    }
+    try {
+      setIsLoading(true);
+      setError(null);
+      const provider = new GithubAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Sincronizar con Firestore
+      if (db && result.user) {
+        try {
+          await setDoc(doc(db, 'users', result.user.uid), {
+            uid: result.user.uid,
+            email: result.user.email,
+            createdAt: new Date().toISOString(),
+            role: 'user',
+          }, { merge: true });
+        } catch (fsErr) {
+          console.error('Error guardando usuario de GitHub en Firestore:', fsErr);
+        }
+      }
+      return result.user;
+    } catch (err: any) {
+      setError(err.message);
+      throw new Error(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Recuperar contraseña
+  const sendPasswordReset = async (email: string) => {
+    if (!isFirebaseConfigured() || !auth) {
+      throw new Error('Firebase no está configurado');
+    }
+    try {
+      setIsLoading(true);
+      setError(null);
+      await sendPasswordResetEmail(auth, email);
+    } catch (err: any) {
+      const message =
+        err.code === 'auth/user-not-found'
+          ? 'No hay ningún usuario registrado con este correo'
+          : err.code === 'auth/invalid-email'
+            ? 'Correo inválido'
+            : err.message;
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Cerrar sesión
   const logout = async () => {
     if (typeof window !== 'undefined') {
@@ -165,6 +274,9 @@ export function useAuth() {
     login,
     logout,
     loginAsGuest,
+    loginWithGoogle,
+    loginWithGithub,
+    sendPasswordReset,
     isAuthenticated: !!user,
     isFirebaseConfigured: isFirebaseConfigured(),
   };

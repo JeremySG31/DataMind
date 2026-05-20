@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DataRow } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,13 +39,27 @@ export function DataVisualizations({ data, columns }: DataVisualizationsProps) {
     data.some(row => typeof row[col] === 'number')
   );
 
-  const visibleData = data.map(row => {
-    const result: DataRow = {};
-    selectedColumns.forEach(col => {
-      result[col] = row[col];
+  // Optimización de rendimiento: muestreo si excede 300 registros
+  const isDownsampled = data.length > 300;
+  const chartData = useMemo(() => {
+    if (!isDownsampled) return data;
+    const step = Math.ceil(data.length / 300);
+    const sampled = [];
+    for (let i = 0; i < data.length; i += step) {
+      sampled.push(data[i]);
+    }
+    return sampled;
+  }, [data, isDownsampled]);
+
+  const visibleData = useMemo(() => {
+    return chartData.map(row => {
+      const result: DataRow = {};
+      selectedColumns.forEach(col => {
+        result[col] = row[col];
+      });
+      return result;
     });
-    return result;
-  });
+  }, [chartData, selectedColumns]);
 
   const toggleColumn = (col: string) => {
     setSelectedColumns(prev =>
@@ -115,7 +129,13 @@ export function DataVisualizations({ data, columns }: DataVisualizationsProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Card className="p-6 bg-background/50 border-muted-foreground/20">
+        <Card className="p-6 bg-background/50 border-muted-foreground/20 space-y-4">
+          {isDownsampled && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/25 text-blue-400 text-xs font-medium">
+              <span className="flex h-2 w-2 rounded-full bg-blue-400 animate-pulse shrink-0" />
+              <span>Optimización Activa: Graficando una muestra representativa de 300 de {data.length} filas para evitar latencia visual.</span>
+            </div>
+          )}
           <div className="w-full h-[400px]">
             {chartType === 'line' && (
               <ResponsiveContainer width="100%" height="100%">

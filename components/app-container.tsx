@@ -7,7 +7,18 @@ import { LandingPage } from './landing-page';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function AppContainer() {
-  const { dataContext, isLoading, error, uploadData, clearData } = useDataAnalysis();
+  const { 
+    datasets, 
+    activeDatasetId, 
+    dataContext, 
+    isLoading, 
+    error, 
+    uploadData, 
+    removeDataset, 
+    selectDataset, 
+    clearData,
+    cleanDataset
+  } = useDataAnalysis();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -38,7 +49,7 @@ export function AppContainer() {
       {/* Contenido principal */}
       <div className="min-h-[calc(100vh-80px)]">
         <AnimatePresence mode="wait">
-          {!dataContext ? (
+          {datasets.length === 0 ? (
             <motion.main
               key="landing"
               initial={{ opacity: 0 }}
@@ -77,8 +88,14 @@ export function AppContainer() {
               className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
             >
               <Dashboard
-                dataContext={dataContext}
+                dataContext={dataContext || datasets[0]}
+                datasets={datasets}
+                activeDatasetId={activeDatasetId || datasets[0].id}
+                onUpload={uploadData}
+                onRemove={removeDataset}
+                onSelect={selectDataset}
                 onClear={clearData}
+                onClean={cleanDataset}
               />
             </motion.main>
           )}

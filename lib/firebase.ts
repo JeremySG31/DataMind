@@ -4,9 +4,23 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 
 // Tu configuración de Firebase
 // Obtén estos valores de tu proyecto en https://console.firebase.google.com
+const getAuthDomain = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // En desarrollo local (localhost), usamos el dominio seguro de Firebase por defecto
+    // para evitar el error ERR_SSL_PROTOCOL_ERROR ya que tu entorno local corre bajo HTTP (sin SSL).
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'datamind-app-31.firebaseapp.com';
+    }
+    // En producción (Vercel), usamos el host de tu aplicación que ya cuenta con SSL activo.
+    return window.location.host;
+  }
+  return 'datamind-app-31.firebaseapp.com';
+};
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+  authDomain: getAuthDomain(),
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',

@@ -12,6 +12,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   loginAsGuest: () => Promise<any>;
+  loginWithGoogle: () => Promise<User>;
+  loginWithGithub: () => Promise<User>;
+  sendPasswordReset: (email: string) => Promise<void>;
   isAuthenticated: boolean;
   isFirebaseConfigured: boolean;
 }
@@ -30,6 +33,15 @@ const defaultAuthContext: AuthContextType = {
     throw new Error('Firebase no está configurado');
   },
   loginAsGuest: async () => {
+    throw new Error('Firebase no está configurado');
+  },
+  loginWithGoogle: async () => {
+    throw new Error('Firebase no está configurado');
+  },
+  loginWithGithub: async () => {
+    throw new Error('Firebase no está configurado');
+  },
+  sendPasswordReset: async () => {
     throw new Error('Firebase no está configurado');
   },
   isAuthenticated: false,

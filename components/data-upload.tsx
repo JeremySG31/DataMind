@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Upload, Loader2 } from 'lucide-react';
@@ -14,6 +14,7 @@ interface DataUploadProps {
 
 export function DataUpload({ onUpload, isLoading, error }: DataUploadProps) {
   const [isDragActive, setIsDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -89,17 +90,17 @@ export function DataUpload({ onUpload, isLoading, error }: DataUploadProps) {
 
           <input
             type="file"
+            ref={fileInputRef}
             accept=".csv,.xlsx,.xls"
             onChange={handleFileInput}
             disabled={isLoading}
             className="hidden"
-            id="file-input"
           />
 
           <Button
-            onClick={() => document.getElementById('file-input')?.click()}
+            onClick={() => fileInputRef.current?.click()}
             disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
           >
             {isLoading ? (
               <>

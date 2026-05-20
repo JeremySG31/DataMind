@@ -4,15 +4,25 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers';
 import { Dashboard } from '@/components/dashboard';
-import { DataUpload } from '@/components/data-upload';
 import { useDataAnalysis } from '@/hooks/useDataAnalysis';
-import { Loader2, Database, UserCheck } from 'lucide-react';
+import { Loader2, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading, logout, user } = useAuthContext();
-  const { dataContext, isLoading: analysisLoading, error, uploadData, clearData } = useDataAnalysis();
+  const { 
+    datasets, 
+    activeDatasetId, 
+    dataContext, 
+    isLoading: analysisLoading, 
+    error, 
+    uploadData, 
+    removeDataset, 
+    selectDataset, 
+    clearData,
+    cleanDataset
+  } = useDataAnalysis();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -66,30 +76,24 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col justify-start">
-        {!dataContext ? (
-          <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto py-12">
-            <div className="text-center mb-8">
-              <Database className="h-16 w-16 text-blue-500/80 mx-auto mb-4" />
-              <h2 className="text-3xl font-extrabold text-foreground tracking-tight sm:text-4xl">
-                Carga tus datos
-              </h2>
-              <p className="mt-3 text-lg text-muted-foreground text-center">
-                Sube un archivo CSV o Excel para comenzar el análisis automático e interactuar con el chat de inteligencia artificial.
-              </p>
-            </div>
-            <DataUpload
-              onUpload={uploadData}
-              isLoading={analysisLoading}
-              error={error}
-            />
-          </div>
-        ) : (
-          <Dashboard
-            dataContext={dataContext}
-            onClear={clearData}
-            isGuest={user?.isAnonymous || false}
-          />
-        )}
+        <Dashboard
+          dataContext={dataContext || {
+            filename: '',
+            rowCount: 0,
+            columnCount: 0,
+            columns: [],
+            data: [],
+          }}
+          datasets={datasets}
+          activeDatasetId={activeDatasetId || ''}
+          onUpload={uploadData}
+          onRemove={removeDataset}
+          onSelect={selectDataset}
+          onClear={clearData}
+          onClean={cleanDataset}
+          isGuest={user?.isAnonymous || false}
+          isLoading={analysisLoading}
+        />
       </main>
 
       {/* Footer */}

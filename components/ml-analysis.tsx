@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
-import { Brain, TrendingUp, Zap } from 'lucide-react';
+import { Brain, TrendingUp, Zap, Loader2 } from 'lucide-react';
 import {
   performLinearRegression,
   performPolynomialRegression,
@@ -32,19 +32,61 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
   const [regressionType, setRegressionType] = useState('linear');
   const [clusterCount, setClusterCount] = useState('3');
 
+  // Estados de carga para evitar que la UI parezca bloqueada
+  const [isRegressing, setIsRegressing] = useState(false);
+  const [isClustering, setIsClustering] = useState(false);
+  const [isAnomalyDetecting, setIsAnomalyDetecting] = useState(false);
+
+  // Optimización de rendimiento: Muestrear datos para el cálculo si excede las 1000 filas
+  const isDownsampled = useMemo(() => {
+    const firstCol = columns[0];
+    return firstCol && data[firstCol] && data[firstCol].length > 1000;
+  }, [data, columns]);
+
+  const mlCalculationData = useMemo(() => {
+    const firstCol = columns[0];
+    if (!firstCol || !data[firstCol]) return { sampled: {}, length: 0 };
+    
+    const originalLength = data[firstCol].length;
+    if (originalLength <= 1000) {
+      return { sampled: data, length: originalLength };
+    }
+    
+    const step = Math.ceil(originalLength / 1000);
+    const sampled: Record<string, number[]> = {};
+    
+    for (const col of columns) {
+      if (!data[col]) continue;
+      const colData = data[col];
+      const sampledCol: number[] = [];
+      for (let i = 0; i < originalLength; i += step) {
+        sampledCol.push(colData[i]);
+      }
+      sampled[col] = sampledCol;
+    }
+    
+    return { sampled, length: sampled[firstCol]?.length || 0 };
+  }, [data, columns]);
+
   const handleLinearRegression = () => {
     if (!selectedXColumn || !selectedYColumn) return;
     
-    const x = data[selectedXColumn];
-    const y = data[selectedYColumn];
-    
-    if (regressionType === 'linear') {
-      const result = performLinearRegression(x, y);
-      setRegressionResult(result);
-    } else {
-      const result = performPolynomialRegression(x, y, 2);
-      setRegressionResult(result);
-    }
+    setIsRegressing(true);
+    // Ejecutar en setTimeout para permitir que React pinte el spinner de carga antes de bloquear el hilo principal
+    setTimeout(() => {
+      const calcData = mlCalculationData.sampled;
+      const x = calcData[selectedXColumn] || [];
+      const y = calcData[selectedYColumn] || [];
+      
+      if (regressionType === 'linear') {
+        const result = performLinearRegression(x, y);
+        setRegressionResult(result);
+      } else {
+        const result = performPolynomialRegression(x, y, 2);
+        setRegressionResult(result);
+      }
+      setIsRegressing(false);
+    }, 50);
   };
 
   const handleKMeans = () => {
@@ -61,28 +103,52 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
       return;
     }
     
-    const dataPoints = Array.from({ length: data[numericColumns[0]].length }, (_, i) => 
-      numericColumns.map(col => data[col][i])
-    );
-    
-    const result = performKMeans(dataPoints, k);
-    setClusterResult(result);
+    setIsClustering(true);
+    setTimeout(() => {
+      const calcData = mlCalculationData.sampled;
+      const dataPoints = Array.from({ length: calcData[numericColumns[0]].length }, (_, i) => 
+        numericColumns.map(col => calcData[col][i])
+      );
+      
+      const result = performKMeans(dataPoints, k);
+      setClusterResult(result);
+      setIsClustering(false);
+    }, 50);
   };
 
   const handleAnomalyDetection = () => {
     if (!selectedYColumn) return;
     
-    const result = detectAnomalies(data[selectedYColumn], 3);
-    setAnomalyResult(result);
+    setIsAnomalyDetecting(true);
+    setTimeout(() => {
+      const result = detectAnomalies(data[selectedYColumn], 3);
+      setAnomalyResult(result);
+      setIsAnomalyDetecting(false);
+    }, 50);
   };
 
-  const chartData = selectedXColumn && selectedYColumn && regressionResult
-    ? data[selectedXColumn].map((x, i) => ({
-        x,
-        actual: data[selectedYColumn][i],
-        predicted: regressionResult.predictions[i],
-      }))
-    : [];
+  // Muestreo sistemático de 300 puntos para gráficos Recharts snappy
+  const chartData = useMemo(() => {
+    if (!selectedXColumn || !selectedYColumn || !regressionResult) return [];
+    
+    const calcData = mlCalculationData.sampled;
+    const xArr = calcData[selectedXColumn] || [];
+    const yArr = calcData[selectedYColumn] || [];
+    const predArr = regressionResult.predictions || [];
+    const len = xArr.length;
+    
+    const step = len > 300 ? Math.ceil(len / 300) : 1;
+    const result = [];
+    
+    for (let i = 0; i < len; i += step) {
+      result.push({
+        x: xArr[i],
+        actual: yArr[i],
+        predicted: predArr[i],
+      });
+    }
+    return result;
+  }, [selectedXColumn, selectedYColumn, regressionResult, mlCalculationData]);
 
   return (
     <motion.div
@@ -90,6 +156,13 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
+      {isDownsampled && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/25 text-purple-400 text-xs font-medium">
+          <span className="flex h-2 w-2 rounded-full bg-purple-400 animate-pulse shrink-0" />
+          <span>Optimizador de IA Activo: Muestreando 1,000 registros representativos para ejecutar el entrenamiento instantáneamente a alta velocidad.</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-blue-500/20">
           <CardHeader className="pb-3">
@@ -137,8 +210,19 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleLinearRegression} className="w-full bg-blue-600 hover:bg-blue-700">
-              Ejecutar Regresión
+            <Button 
+              onClick={handleLinearRegression} 
+              disabled={isRegressing}
+              className="w-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isRegressing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Calculando Regresión...
+                </>
+              ) : (
+                'Ejecutar Regresión'
+              )}
             </Button>
             {regressionResult && (
               <div className="mt-4 p-3 bg-blue-500/10 rounded">
@@ -170,8 +254,19 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleKMeans} className="w-full bg-purple-600 hover:bg-purple-700">
-              Ejecutar K-Means
+            <Button 
+              onClick={handleKMeans} 
+              disabled={isClustering}
+              className="w-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isClustering ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Ejecutando K-Means...
+                </>
+              ) : (
+                'Ejecutar K-Means'
+              )}
             </Button>
             {clusterResult && (
               <div className="mt-4 p-3 bg-purple-500/10 rounded">
@@ -203,8 +298,19 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleAnomalyDetection} className="w-full bg-orange-600 hover:bg-orange-700">
-              Detectar Anomalías
+            <Button 
+              onClick={handleAnomalyDetection} 
+              disabled={isAnomalyDetecting}
+              className="w-full bg-orange-600 hover:bg-orange-700 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isAnomalyDetecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Buscando Anomalías...
+                </>
+              ) : (
+                'Detectar Anomalías'
+              )}
             </Button>
             {anomalyResult && (
               <div className="mt-4 p-3 bg-orange-500/10 rounded">

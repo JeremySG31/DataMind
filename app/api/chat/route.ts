@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       .map((msg: any) => `${msg.role === 'user' ? 'Usuario' : 'Asistente'}: ${msg.content}`)
       .join('\n');
 
-    const prompt = `Eres un experto analista de datos que ayuda a usuarios a entender sus datasets.
+    const prompt = `Eres un experto analista de datos financiero y de negocios que ayuda a usuarios a entender sus datasets de manera profunda.
 
 INFORMACIÓN DEL DATASET:
 - Columnas: ${columns.join(', ')}
@@ -53,7 +53,20 @@ ${chatHistory || 'Sin historial previo'}
 PREGUNTA DEL USUARIO:
 ${message}
 
-Proporciona una respuesta clara, concisa y útil basada en el análisis del dataset. Si la pregunta requiere números específicos, intenta proporcionar información cuantitativa. Responde en español.`;
+Instrucciones de Respuesta:
+1. Proporciona una respuesta clara, concisa y útil basada en el análisis del dataset. Intenta proporcionar información cuantitativa y valiosa para el negocio.
+2. Responde en español.
+3. SI consideras que la respuesta o los datos discutidos se verían mejor representados visualmente, incluye al final de tu respuesta (en una línea nueva y separada) un bloque JSON exacto con la configuración del gráfico recomendado. Este bloque JSON debe ser de la siguiente manera:
+\`\`\`json
+{
+  "type": "chart",
+  "chartType": "bar" | "line" | "scatter" | "pie",
+  "x": "NombreExactoDeColumnaParaEjeX",
+  "y": "NombreExactoDeColumnaParaEjeY",
+  "title": "Título corto y descriptivo del gráfico"
+}
+\`\`\`
+Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan EXACTAMENTE con los nombres de las columnas provistas arriba. Si el gráfico es de dispersión o barra, asegúrate de que al menos la columna "y" sea numérica. No inventes nombres de columnas.`;
 
     const response = await generateText({
       model: openrouter('mistral-7b-instruct'),
@@ -80,15 +93,26 @@ function calculateBasicStats(data: any[], columns: string[]): Record<string, any
   );
 
   numericColumns.forEach(col => {
-    const values = data
-      .map(row => row[col])
-      .filter((val): val is number => typeof val === 'number');
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+    let sum = 0;
+    let count = 0;
 
-    if (values.length > 0) {
+    for (let i = 0; i < data.length; i++) {
+      const val = data[i][col];
+      if (typeof val === 'number' && !isNaN(val)) {
+        if (val < minVal) minVal = val;
+        if (val > maxVal) maxVal = val;
+        sum += val;
+        count++;
+      }
+    }
+
+    if (count > 0) {
       stats[col] = {
-        min: Math.min(...values),
-        max: Math.max(...values),
-        avg: (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2),
+        min: minVal,
+        max: maxVal,
+        avg: (sum / count).toFixed(2),
       };
     }
   });
