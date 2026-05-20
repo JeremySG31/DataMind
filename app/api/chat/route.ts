@@ -69,7 +69,7 @@ Instrucciones de Respuesta:
 Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan EXACTAMENTE con los nombres de las columnas provistas arriba. Si el gráfico es de dispersión o barra, asegúrate de que al menos la columna "y" sea numérica. No inventes nombres de columnas.`;
 
     const response = await generateText({
-      model: openrouter('mistral-7b-instruct'),
+      model: openrouter('google/gemma-2-9b-it:free'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });

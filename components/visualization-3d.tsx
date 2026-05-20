@@ -38,7 +38,7 @@ export function Visualization3D({ data, columns }: Visualization3DProps) {
   useEffect(() => {
     if (!window.Plotly) {
       const script = document.createElement('script');
-      script.src = 'https://cdn.plot.ly/plotly-latest.min.js';
+      script.src = 'https://cdn.plot.ly/plotly-2.27.0.min.js';
       script.async = true;
       script.onload = () => setPlotlyLoaded(true);
       document.body.appendChild(script);

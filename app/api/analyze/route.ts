@@ -46,7 +46,7 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openrouter('mistral-7b-instruct'),
+      model: openrouter('deepseek/deepseek-v4-flash:free'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });

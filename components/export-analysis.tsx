@@ -27,11 +27,37 @@ export function ExportAnalysis({
   const [analysisName, setAnalysisName] = useState(`${datasetName}-${new Date().toISOString().slice(0, 10)}`);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
+  const [savedAnalysisId, setSavedAnalysisId] = useState<string | null>(null);
   const { user } = useAuthContext();
 
   const handleExportPDF = async () => {
-    // Aquí iría la lógica para capturar gráficos y exportar a PDF
-    alert('Exportación a PDF: Funcionalidad en desarrollo');
+    setIsSaving(true);
+    try {
+      const rowCount = Array.isArray(data) ? data.length : 0;
+      const columnsList = Array.isArray(data) && data[0] ? Object.keys(data[0]) : [];
+
+      const reportData = {
+        title: analysisName,
+        description: 'Reporte completo de análisis de datos e insights generado por DataMind.',
+        generatedAt: new Date(),
+        datasetName,
+        summary: {
+          rowCount,
+          columnCount: columnsList.length,
+          columns: columnsList,
+        },
+        statistics,
+        insights,
+        visualizations: [],
+      };
+
+      await exportAnalysisToPDF(reportData, `${analysisName}.pdf`);
+    } catch (err) {
+      console.error('Error al exportar PDF:', err);
+      alert('Error al generar el PDF del reporte.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleExportJSON = () => {
@@ -52,14 +78,20 @@ export function ExportAnalysis({
   };
 
   const handleExportCSV = () => {
-    const csvData = Array.isArray(data) ? data : Object.values(data)[0];
-    if (Array.isArray(csvData)) {
-      const rows = csvData.map((_, i) => 
-        Object.fromEntries(
-          Object.entries(data).map(([key, values]: any) => [key, values[i]])
-        )
-      );
-      exportAnalysisAsCSV(rows, `${analysisName}.csv`);
+    if (Array.isArray(data)) {
+      exportAnalysisAsCSV(data, `${analysisName}.csv`);
+    } else {
+      // Si la estructura del dataset fuese un objeto de columnas: { colA: [...], colB: [...] }
+      const keys = Object.keys(data);
+      if (keys.length > 0) {
+        const firstCol = data[keys[0]];
+        if (Array.isArray(firstCol)) {
+          const rows = firstCol.map((_, i) =>
+            Object.fromEntries(keys.map(key => [key, data[key][i]]))
+          );
+          exportAnalysisAsCSV(rows, `${analysisName}.csv`);
+        }
+      }
     }
   };
 
@@ -89,13 +121,14 @@ export function ExportAnalysis({
 
       const result = await response.json();
       if (result.success) {
-        alert(`Análisis guardado: ${result.analysisId}`);
+        setSavedAnalysisId(result.analysisId);
+        alert(`¡Análisis guardado exitosamente!\nID: ${result.analysisId}`);
       } else {
-        alert(`Error: ${result.error}`);
+        alert(`Error guardando análisis: ${result.error}`);
       }
     } catch (error) {
       console.error('Error guardando análisis:', error);
-      alert('Error guardando análisis');
+      alert('Error al guardar el análisis en la nube.');
     } finally {
       setIsSaving(false);
     }
@@ -107,12 +140,55 @@ export function ExportAnalysis({
       return;
     }
 
+    let currentAnalysisId = savedAnalysisId;
+
+    // Si aún no está guardado, guardamos primero para generar el ID en Firestore
+    if (!currentAnalysisId) {
+      setIsSaving(true);
+      try {
+        const response = await fetch('/api/save-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.uid,
+            analysisData: {
+              data,
+              statistics,
+              insights,
+            },
+            datasetName,
+            analysisType,
+            isPublic,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          currentAnalysisId = result.analysisId;
+          setSavedAnalysisId(result.analysisId);
+        } else {
+          alert(`Error guardando análisis para compartir: ${result.error}`);
+          setIsSaving(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Error guardando análisis antes de compartir:', error);
+        alert('Error al procesar el guardado preliminar.');
+        setIsSaving(false);
+        return;
+      } finally {
+        setIsSaving(false);
+      }
+    }
+
+    if (!currentAnalysisId) return;
+
     try {
       const response = await fetch('/api/share-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          analysisId: 'analysis-id', // Esto vendría del análisis guardado
+          analysisId: currentAnalysisId,
           userId: user.uid,
           isPublic,
         }),
@@ -120,11 +196,14 @@ export function ExportAnalysis({
 
       const result = await response.json();
       if (result.success && result.shareLink) {
-        alert(`Enlace de compartición: ${result.shareLink}`);
+        navigator.clipboard.writeText(result.shareLink);
+        alert(`¡Enlace de compartición copiado al portapapeles!:\n${result.shareLink}`);
+      } else {
+        alert('No se pudo generar el enlace. Asegúrate de marcar la casilla "Hacer público" primero.');
       }
     } catch (error) {
       console.error('Error compartiendo:', error);
-      alert('Error compartiendo análisis');
+      alert('Error al compartir el análisis.');
     }
   };
 
