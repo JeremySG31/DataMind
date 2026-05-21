@@ -39,6 +39,7 @@
     "@radix-ui/react-toggle-group": "1.1.11",
     "@radix-ui/react-tooltip": "1.2.8",
     "@tensorflow/tfjs": "^4.22.0",
+    "@types/three": "^0.169.0",
     "@vercel/analytics": "1.6.1",
     "ai": "^6.0.182",
     "autoprefixer": "^10.4.20",
@@ -68,6 +69,7 @@
     "simple-statistics": "^7.8.9",
     "sonner": "^1.7.1",
     "tailwind-merge": "^3.3.1",
+    "three": "^0.169.0",
     "vaul": "^1.1.2",
     "xlsx": "^0.18.5",
     "zod": "^3.24.1"
