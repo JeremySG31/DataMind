@@ -15,7 +15,7 @@ export default function RegisterPage() {
           <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-400 w-fit mb-4 shadow-lg shadow-blue-500/20">
             <Brain className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent tracking-tight mb-2">
+          <h1 className="text-4xl sm:text-5xl font-extrabold font-display bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent tracking-tight mb-2">
             DataMind
           </h1>
           <p className="text-muted-foreground text-base">Analista de Datos Inteligente con IA</p>

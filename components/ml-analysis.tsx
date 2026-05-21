@@ -166,7 +166,7 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-blue-500/20">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2 font-display">
               <TrendingUp className="h-5 w-5 text-blue-500" />
               Regresión
             </CardTitle>
@@ -235,7 +235,7 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
 
         <Card className="border-purple-500/20">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2 font-display">
               <Brain className="h-5 w-5 text-purple-500" />
               Clustering
             </CardTitle>
@@ -279,7 +279,7 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
 
         <Card className="border-orange-500/20">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2 font-display">
               <Zap className="h-5 w-5 text-orange-500" />
               Anomalías
             </CardTitle>
@@ -329,7 +329,7 @@ export function MLAnalysis({ data, columns }: MLAnalysisProps) {
       {regressionResult && chartData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Resultados de Regresión</CardTitle>
+            <CardTitle className="font-display">Resultados de Regresión</CardTitle>
             <CardDescription>Comparación entre valores reales y predichos</CardDescription>
           </CardHeader>
           <CardContent>

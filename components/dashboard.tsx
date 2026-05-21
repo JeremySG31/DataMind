@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { DataContext, AnalysisResult } from '@/lib/types';
-import { WorkspaceDataset } from '@/hooks/useDataAnalysis';
+import { DataContext, AnalysisResult, DataRow } from '@/lib/types';
+import { WorkspaceDataset, CleanOptions } from '@/hooks/useDataAnalysis';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DataPrepWizard } from './data-prep-wizard';
 import { AnalysisResults } from './analysis-results';
 import { DataVisualizations } from './data-visualizations';
 import { DataTable } from './data-table';
@@ -13,6 +14,7 @@ import { MLAnalysis } from './ml-analysis';
 import { Visualization3D } from './visualization-3d';
 import { ExportAnalysis } from './export-analysis';
 import { DataUpload } from './data-upload';
+import { DataStorytelling } from './data-storytelling';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -36,7 +38,8 @@ import {
   ChevronRight, 
   Award, 
   FileSpreadsheet,
-  Upload
+  Upload,
+  BookOpen
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -48,9 +51,100 @@ interface DashboardProps {
   onRemove: (id: string) => void;
   onSelect: (id: string) => void;
   onClear: () => void;
-  onClean: (id: string) => void;
+  onClean: (id: string, options?: CleanOptions) => void;
+  previewCleanDataset: (id: string, options: CleanOptions) => DataRow[];
   isGuest?: boolean;
   isLoading?: boolean;
+}
+
+function checkIsDatasetCleanAndSorted(data: any[], columns: string[]) {
+  if (data.length <= 1) {
+    return {
+      isCleanAndSorted: true,
+      hasDuplicates: false,
+      hasNulls: false,
+      sortedBy: null,
+      sortedOrder: 'asc' as const
+    };
+  }
+
+  // 1. Check duplicates (using up to 200 rows for performance)
+  const sampleForDuplicates = data.slice(0, 200);
+  const stringifiedRows = sampleForDuplicates.map(row => {
+    const vals = columns.map(c => String(row[c] ?? ''));
+    return vals.join('|||');
+  });
+  const duplicates = stringifiedRows.length - new Set(stringifiedRows).size;
+  const hasDuplicates = duplicates > 0;
+
+  // 2. Check nulls (up to 200 rows)
+  let hasNulls = false;
+  const sampleForNulls = data.slice(0, 200);
+  for (const row of sampleForNulls) {
+    for (const col of columns) {
+      const val = row[col];
+      if (val === undefined || val === null || val === '' || (typeof val === 'number' && isNaN(val))) {
+        hasNulls = true;
+        break;
+      }
+    }
+    if (hasNulls) break;
+  }
+
+  // 3. Check if sorted by at least one column (up to 100 rows)
+  let sortedBy: string | null = null;
+  let sortedOrder: 'asc' | 'desc' = 'asc';
+
+  const sampleForSort = data.slice(0, 100);
+  for (const col of columns) {
+    let isAsc = true;
+    let isDesc = true;
+
+    for (let i = 0; i < sampleForSort.length - 1; i++) {
+      const valA = sampleForSort[i][col];
+      const valB = sampleForSort[i + 1][col];
+
+      if (valA === undefined || valA === null || valB === undefined || valB === null) {
+        isAsc = false;
+        isDesc = false;
+        break;
+      }
+
+      const numA = Number(valA);
+      const numB = Number(valB);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        if (numA > numB) isAsc = false;
+        if (numA < numB) isDesc = false;
+      } else {
+        const strA = String(valA);
+        const strB = String(valB);
+        const comp = strA.localeCompare(strB, undefined, { numeric: true, sensitivity: 'base' });
+        if (comp > 0) isAsc = false;
+        if (comp < 0) isDesc = false;
+      }
+
+      if (!isAsc && !isDesc) break;
+    }
+
+    if (isAsc) {
+      sortedBy = col;
+      sortedOrder = 'asc';
+      break;
+    } else if (isDesc) {
+      sortedBy = col;
+      sortedOrder = 'desc';
+      break;
+    }
+  }
+
+  const isCleanAndSorted = !hasDuplicates && !hasNulls && sortedBy !== null;
+  return {
+    isCleanAndSorted,
+    hasDuplicates,
+    hasNulls,
+    sortedBy,
+    sortedOrder,
+  };
 }
 
 export function Dashboard({ 
@@ -62,15 +156,41 @@ export function Dashboard({
   onSelect, 
   onClear, 
   onClean,
+  previewCleanDataset,
   isGuest = false,
   isLoading = false
 }: DashboardProps) {
   const [aiAnalysis, setAiAnalysis] = useState<AnalysisResult | null>(dataContext.analysis || null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeTab, setActiveTab] = useState('visualizations');
+  const [activeTab, setActiveTab] = useState('storytelling');
   const [selectedGoal, setSelectedGoal] = useState<any>(null);
   const [chatInitialQuestion, setChatInitialQuestion] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isPrepWizardOpen, setIsPrepWizardOpen] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>([]);
+
+  const prevDatasetsCount = useRef(datasets.length);
+
+  useEffect(() => {
+    if (datasets.length > prevDatasetsCount.current) {
+      const newDataset = datasets[datasets.length - 1];
+      if (newDataset) {
+        if (!newDataset.aiPrepExplanation) {
+          const check = checkIsDatasetCleanAndSorted(newDataset.data, newDataset.columns);
+          if (!check.isCleanAndSorted) {
+            setIsPrepWizardOpen(true);
+          }
+        }
+      }
+    }
+    prevDatasetsCount.current = datasets.length;
+  }, [datasets.length]);
+
+  useEffect(() => {
+    if (datasets.length === 0) {
+      setDismissedAlerts([]);
+    }
+  }, [datasets.length]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -86,6 +206,36 @@ export function Dashboard({
       performAIAnalysis();
     }
   }, [dataContext, aiAnalysis]);
+
+  const activeDataset = useMemo(() => {
+    return datasets.find(d => d.id === activeDatasetId) || null;
+  }, [datasets, activeDatasetId]);
+
+  const activeAlert = useMemo(() => {
+    if (!activeDataset || dismissedAlerts.includes(activeDataset.id)) {
+      return null;
+    }
+
+    if (activeDataset.aiPrepExplanation) {
+      return {
+        type: 'ai_autoclean' as const,
+        filename: activeDataset.filename,
+        explanation: activeDataset.aiPrepExplanation,
+      };
+    }
+
+    const check = checkIsDatasetCleanAndSorted(activeDataset.data, activeDataset.columns);
+    if (check.isCleanAndSorted) {
+      return {
+        type: 'clean_and_sorted' as const,
+        filename: activeDataset.filename,
+        column: check.sortedBy || '',
+        order: check.sortedOrder || 'asc',
+      };
+    }
+
+    return null;
+  }, [activeDataset, dismissedAlerts]);
 
   // Optimización de rendimiento: Memoizar conversión de datos para ML
   const mlData = useMemo(() => {
@@ -300,7 +450,7 @@ export function Dashboard({
         className={`w-full lg:w-[280px] shrink-0 flex flex-col gap-4 border-b lg:border-b-0 lg:border-r border-muted-foreground/10 pb-6 lg:pb-0 lg:pr-6`}
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-2">
+          <h3 className="text-sm font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-2 font-display">
             <Activity className="h-4 w-4 text-blue-500" />
             Workspace
           </h3>
@@ -386,6 +536,75 @@ export function Dashboard({
 
       {/* 💻 CONTENIDO PRINCIPAL */}
       <div className="flex-1 min-w-0 space-y-6">
+        {activeAlert && activeAlert.type === 'ai_autoclean' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="p-4 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-950/20 to-indigo-950/10 text-blue-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md"
+          >
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10 shrink-0 mt-0.5 sm:mt-0">
+                <Sparkles className="h-5 w-5 text-yellow-400 animate-pulse" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                  ✨ DataMind ha optimizado este archivo automáticamente
+                </h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  El archivo <strong className="text-blue-300">{activeAlert.filename}</strong> contenía imperfecciones. La IA lo ha limpiado y ordenado: <span className="italic text-foreground/90">"{activeAlert.explanation}"</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsPrepWizardOpen(true)}
+                className="text-[10px] h-7 border-blue-500/30 text-blue-400 hover:bg-blue-950/20 cursor-pointer"
+              >
+                Ajustar Manualmente
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setDismissedAlerts(prev => [...prev, activeDataset!.id])}
+                className="text-[10px] h-7 text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                Entendido
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {activeAlert && activeAlert.type === 'clean_and_sorted' && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 flex items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10 shrink-0">
+                <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-bold text-foreground">✨ ¡Dataset verificado e impecable!</h4>
+                <p className="text-xs text-muted-foreground">
+                  El archivo <strong className="text-emerald-300">{activeAlert.filename}</strong> se encuentra 100% limpio (0 nulos, 0 duplicados) y ordenado por <strong className="text-emerald-300">{activeAlert.column}</strong> ({activeAlert.order === 'asc' ? 'ascendente' : 'descendente'}). No se requiere limpieza adicional.
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setDismissedAlerts(prev => [...prev, activeDataset!.id])}
+              className="text-[10px] h-7 border-emerald-500/30 text-emerald-400 hover:bg-emerald-950/20 cursor-pointer shrink-0"
+            >
+              Entendido
+            </Button>
+          </motion.div>
+        )}
 
         {/* 🧠 HUB DE OBJETIVOS DE NEGOCIO Y CALIDAD */}
         <motion.div
@@ -397,7 +616,7 @@ export function Dashboard({
           {/* Card 1: Data Quality Score */}
           <Card className="p-4 bg-background/50 border-muted-foreground/20 flex items-center justify-between gap-4 relative overflow-hidden">
             <div className="space-y-1">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Calidad del Dataset</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-display">Calidad del Dataset</h4>
               <p className="text-2xl font-black text-foreground">{datasets.length === 0 ? '--' : `${quality.qualityScore}%`}</p>
               <div className="text-[10px] text-muted-foreground">
                 {datasets.length === 0 ? (
@@ -418,14 +637,18 @@ export function Dashboard({
                     ⚠️ {quality.duplicateCount} registros duplicados encontrados.
                   </span>
                 )}
-                {datasets.length > 0 && (quality.nullCells > 0 || quality.duplicateCount > 0) && (
+                {datasets.length > 0 && (
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => onClean(activeDatasetId)}
-                    className="mt-2 text-[10px] h-7 px-2.5 bg-yellow-500/10 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20 hover:text-yellow-300 font-semibold flex items-center gap-1.5 cursor-pointer rounded-md transition-all shadow-sm w-fit"
+                    onClick={() => setIsPrepWizardOpen(true)}
+                    className={`mt-2 text-[10px] h-7 px-2.5 font-semibold flex items-center gap-1.5 cursor-pointer rounded-md transition-all shadow-sm w-fit ${
+                      quality.nullCells > 0 || quality.duplicateCount > 0
+                        ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/20 hover:text-yellow-300'
+                        : 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300'
+                    }`}
                   >
-                    <Sparkles className="h-3 w-3 text-yellow-400" />
+                    <Sparkles className={`h-3 w-3 ${quality.nullCells > 0 || quality.duplicateCount > 0 ? 'text-yellow-400' : 'text-blue-400'}`} />
                     Depurar y Optimizar
                   </Button>
                 )}
@@ -461,7 +684,7 @@ export function Dashboard({
           {/* Card 2 & 3: Objetivos de Negocio */}
           <Card className="p-4 bg-background/50 border-muted-foreground/20 md:col-span-2 flex flex-col justify-between gap-3">
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 font-display">
                 <Award className="h-4 w-4 text-blue-500" />
                 Diagnóstico de Negocio: Objetivos Disponibles
               </h4>
@@ -506,7 +729,7 @@ export function Dashboard({
                   IA Diagnostic Active
                 </div>
                 
-                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2 font-display">
                   <Sparkles className="h-4.5 w-4.5 text-blue-400 animate-pulse" />
                   {selectedGoal.title}
                 </h3>
@@ -551,22 +774,29 @@ export function Dashboard({
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 h-auto gap-8 flex-wrap">
             <TabsTrigger
+              value="storytelling"
+              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent font-medium font-display"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Narrativa de Datos
+            </TabsTrigger>
+            <TabsTrigger
               value="visualizations"
-              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent font-medium"
+              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent font-medium font-display"
             >
               <BarChart3 className="mr-2 h-4 w-4" />
               Visualizaciones
             </TabsTrigger>
             <TabsTrigger
               value="table"
-              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent font-medium"
+              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent font-medium font-display"
             >
               <Table className="mr-2 h-4 w-4" />
               Tabla
             </TabsTrigger>
             <TabsTrigger
               value="ml"
-              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-purple-600 data-[state=active]:bg-transparent flex items-center font-medium"
+              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-purple-600 data-[state=active]:bg-transparent flex items-center font-medium font-display"
             >
               <Brain className="mr-2 h-4 w-4" />
               Machine Learning
@@ -574,7 +804,7 @@ export function Dashboard({
             </TabsTrigger>
             <TabsTrigger
               value="3d"
-              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-cyan-600 data-[state=active]:bg-transparent flex items-center font-medium"
+              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-cyan-600 data-[state=active]:bg-transparent flex items-center font-medium font-display"
             >
               <Box className="mr-2 h-4 w-4" />
               Visualización 3D
@@ -582,7 +812,7 @@ export function Dashboard({
             </TabsTrigger>
             <TabsTrigger
               value="export"
-              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-green-600 data-[state=active]:bg-transparent flex items-center font-medium"
+              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-green-600 data-[state=active]:bg-transparent flex items-center font-medium font-display"
             >
               <Download className="mr-2 h-4 w-4" />
               Exportar
@@ -590,7 +820,7 @@ export function Dashboard({
             </TabsTrigger>
             <TabsTrigger
               value="chat"
-              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent font-medium"
+              className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent font-medium font-display"
             >
               <MessageSquare className="mr-2 h-4 w-4" />
               Chat
@@ -598,6 +828,28 @@ export function Dashboard({
           </TabsList>
 
           <div className="mt-6">
+            <TabsContent value="storytelling">
+              {datasets.length === 0 ? (
+                <TabUploadPlaceholder
+                  title="Conoce la Historia Detrás de tus Datos"
+                  description="Carga tu dataset para construir una narrativa estructurada en tres actos: el origen e integridad del archivo, descubrimientos clave de la IA, y resoluciones de negocio recomendadas."
+                  onUpload={onUpload}
+                  isLoading={isLoading}
+                  error={null}
+                />
+              ) : (
+                <DataStorytelling
+                  dataContext={dataContext}
+                  aiAnalysis={aiAnalysis}
+                  quality={quality}
+                  businessGoals={businessGoals}
+                  onLaunchGoalInChat={handleLaunchGoalInChat}
+                  onNavigateToTab={setActiveTab}
+                  isAnalyzing={isAnalyzing}
+                />
+              )}
+            </TabsContent>
+
             <TabsContent value="visualizations">
               {datasets.length === 0 ? (
                 <TabUploadPlaceholder
@@ -615,22 +867,42 @@ export function Dashboard({
               )}
             </TabsContent>
 
-            <TabsContent value="table">
-              {datasets.length === 0 ? (
-                <TabUploadPlaceholder
-                  title="Explora tus Datos en Detalle"
-                  description="Carga tu archivo para ordenar, filtrar y examinar cada fila de tu dataset en una tabla interactiva."
-                  onUpload={onUpload}
-                  isLoading={isLoading}
-                  error={null}
-                />
-              ) : (
-                <DataTable
-                  data={dataContext.data}
-                  columns={dataContext.columns}
-                />
-              )}
-            </TabsContent>
+             <TabsContent value="table">
+               {datasets.length === 0 ? (
+                 <TabUploadPlaceholder
+                   title="Explora tus Datos en Detalle"
+                   description="Carga tu archivo para ordenar, filtrar y examinar cada fila de tu dataset en una tabla interactiva."
+                   onUpload={onUpload}
+                   isLoading={isLoading}
+                   error={null}
+                 />
+               ) : (
+                 <div className="space-y-4">
+                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-muted/20 border border-muted-foreground/10 p-4 rounded-lg gap-4">
+                     <div className="space-y-0.5">
+                       <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                         <Sparkles className="h-4 w-4 text-blue-400" />
+                         Asistente de Preparación e Integridad de Datos
+                       </p>
+                       <p className="text-xs text-muted-foreground">
+                         Depura nulos, elimina duplicados, selecciona columnas y ordena filas para limpiar el caos de tu archivo.
+                       </p>
+                     </div>
+                     <Button
+                       onClick={() => setIsPrepWizardOpen(true)}
+                       className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-500/10"
+                     >
+                       <Sparkles className="h-3.5 w-3.5" />
+                       Depurar y Ordenar Dataset
+                     </Button>
+                   </div>
+                   <DataTable
+                     data={dataContext.data}
+                     columns={dataContext.columns}
+                   />
+                 </div>
+               )}
+             </TabsContent>
 
             <TabsContent value="ml">
               {datasets.length === 0 ? (
@@ -675,7 +947,10 @@ export function Dashboard({
                   data={Object.fromEntries(
                     dataContext.columns.map(col => [
                       col,
-                      dataContext.data.map((row: any) => typeof row[col] === 'number' ? row[col] : 0)
+                      dataContext.data.map((row: any) => {
+                        const val = row[col];
+                        return typeof val === 'number' ? val : (val === null || val === undefined ? '' : String(val));
+                      })
                     ])
                   )}
                   columns={dataContext.columns}
@@ -687,7 +962,7 @@ export function Dashboard({
               {datasets.length === 0 ? (
                 <TabUploadPlaceholder
                   title="Genera Reportes Profesionales"
-                  description="Carga tu dataset para descargar reportes en PDF o compartir tus descubrimientos con tu equipo."
+                  description="Carga tu dataset para descargar reportes en PDF, generar resúmenes con IA o guardar tus análisis de forma segura."
                   onUpload={onUpload}
                   isLoading={isLoading}
                   error={null}
@@ -695,7 +970,7 @@ export function Dashboard({
               ) : isGuest ? (
                 <PremiumLockScreen 
                   title="Exportación y Gestión de Reportes" 
-                  description="Guarda tus análisis en la nube, expórtalos en PDF profesionales o comparte tus descubrimientos con tu equipo." 
+                  description="Guarda tus análisis de forma privada en la nube, expórtalos en PDF profesionales o copia reportes IA en un clic." 
                   icon={<Download className="h-8 w-8 text-green-500" />} 
                 />
               ) : (
@@ -730,6 +1005,17 @@ export function Dashboard({
           </div>
         </Tabs>
       </div>
+
+      {/* Asistente de Preparación de Datos (Wizard) */}
+      {activeDataset && (
+        <DataPrepWizard
+          isOpen={isPrepWizardOpen}
+          onOpenChange={setIsPrepWizardOpen}
+          dataset={activeDataset}
+          onClean={onClean}
+          previewCleanDataset={previewCleanDataset}
+        />
+      )}
     </div>
   );
 }
@@ -750,7 +1036,7 @@ function PremiumLockScreen({ title, description, icon }: { title: string, descri
           </div>
         </div>
         
-        <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-3">
+        <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-3 font-display">
           {title}
         </h3>
         
@@ -805,7 +1091,7 @@ function TabUploadPlaceholder({
         <div className="p-4 rounded-full bg-blue-500/10 mb-4 border border-blue-500/20 text-blue-400">
           <Upload className="h-8 w-8" />
         </div>
-        <h3 className="text-xl font-bold mb-2 text-foreground">{title}</h3>
+        <h3 className="text-xl font-bold mb-2 text-foreground font-display">{title}</h3>
         <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
           {description}
         </p>

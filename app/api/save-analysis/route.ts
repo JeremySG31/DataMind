@@ -1,10 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { verifyFirebaseIdToken } from '@/lib/auth-server';
+import { z } from 'zod';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limiter';
+
+const saveAnalysisPostSchema = z.object({
+  userId: z.string().min(1, 'userId es requerido'),
+  analysisData: z.object({
+    data: z.array(z.record(z.any())).min(1, 'Los datos no pueden estar vacíos'),
+    statistics: z.record(z.any()).optional().nullable(),
+    insights: z.array(z.string()).optional().nullable(),
+  }),
+  datasetName: z.string().min(1, 'Nombre del dataset es requerido'),
+  analysisType: z.string().min(1, 'Tipo de análisis es requerido'),
+  isPublic: z.boolean().optional(),
+});
+
+const saveAnalysisPutSchema = z.object({
+  analysisId: z.string().min(1, 'analysisId es requerido'),
+  userId: z.string().min(1, 'userId es requerido'),
+  analysisData: z.object({
+    data: z.array(z.record(z.any())).min(1, 'Los datos no pueden estar vacíos'),
+    statistics: z.record(z.any()).optional().nullable(),
+    insights: z.array(z.string()).optional().nullable(),
+  }),
+  isPublic: z.boolean().optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, analysisData, datasetName, analysisType, isPublic } = await request.json();
+    // Rate limiting: máximo 30 guardados por minuto por IP
+    const ip = getClientIp(request);
+    const rateLimitResult = checkRateLimit(ip, { limit: 30, windowMs: 60 * 1000 });
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Demasiadas peticiones. Por favor espera un momento.' },
+        { status: 429 }
+      );
+    }
+
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    const decodedToken = await verifyFirebaseIdToken(token);
+
+    if (!decodedToken) {
+      return NextResponse.json(
+        { error: 'No autorizado: Token de sesión inválido o expirado' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const parseResult = saveAnalysisPostSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Datos de petición inválidos', details: parseResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { userId, analysisData, datasetName, analysisType, isPublic } = parseResult.data;
 
     if (!db) {
       return NextResponse.json(
@@ -13,15 +70,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!userId || !analysisData) {
+    // Prevenir Broken Object Level Authorization (BOLA)
+    if (decodedToken.uid !== userId) {
       return NextResponse.json(
-        { error: 'Datos incompletos' },
-        { status: 400 }
+        { error: 'Acceso denegado: No puedes guardar datos para otro usuario' },
+        { status: 403 }
       );
     }
 
-    // Guardar en Firestore
-    const analysisRef = await addDoc(collection(db, 'analyses'), {
+    // Guardar en Firestore siguiendo las reglas de seguridad: /analyses/{userId}/user_analyses
+    const analysisRef = await addDoc(collection(db, 'analyses', userId, 'user_analyses'), {
       userId,
       datasetName,
       analysisType,
@@ -51,7 +109,28 @@ export async function POST(request: NextRequest) {
 // Actualizar análisis existente
 export async function PUT(request: NextRequest) {
   try {
-    const { analysisId, userId, analysisData, isPublic } = await request.json();
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    const decodedToken = await verifyFirebaseIdToken(token);
+
+    if (!decodedToken) {
+      return NextResponse.json(
+        { error: 'No autorizado: Token de sesión inválido o expirado' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const parseResult = saveAnalysisPutSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Datos de petición inválidos', details: parseResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { analysisId, userId, analysisData, isPublic } = parseResult.data;
 
     if (!db) {
       return NextResponse.json(
@@ -60,17 +139,18 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (!analysisId || !userId) {
+    // Prevenir Broken Object Level Authorization (BOLA)
+    if (decodedToken.uid !== userId) {
       return NextResponse.json(
-        { error: 'ID de análisis e ID de usuario requeridos' },
-        { status: 400 }
+        { error: 'Acceso denegado: No puedes actualizar datos para otro usuario' },
+        { status: 403 }
       );
     }
 
-    const analysisRef = doc(db, 'analyses', analysisId);
+    const analysisRef = doc(db, 'analyses', userId, 'user_analyses', analysisId);
     await updateDoc(analysisRef, {
       data: analysisData,
-      isPublic,
+      isPublic: isPublic || false,
       updatedAt: serverTimestamp(),
     });
 
@@ -89,3 +169,4 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+

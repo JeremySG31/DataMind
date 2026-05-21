@@ -2,13 +2,21 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BarChart3, Brain, Zap, MessageSquare, Upload, FileJson } from 'lucide-react';
+import { BarChart3, Brain, Zap, MessageSquare, Upload, FileJson, LogOut, LayoutDashboard, UserCheck, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/app/providers';
+import { useEffect, useState } from 'react';
 
 export function LandingPage() {
   const router = useRouter();
-  const { isAuthenticated, loginAsGuest } = useAuthContext();
+  const { isAuthenticated, loginAsGuest, logout, user } = useAuthContext();
+  const [isRegisteredUser, setIsRegisteredUser] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsRegisteredUser(localStorage.getItem('datamind_registered_user') === 'true');
+    }
+  }, []);
 
   const handleGuestAccess = async () => {
     try {
@@ -93,18 +101,32 @@ export function LandingPage() {
             <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-400">
               <Brain className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold font-display bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
               DataMind
             </h1>
           </div>
           <div className="flex gap-3">
             {isAuthenticated ? (
-              <Button
-                onClick={() => router.push('/dashboard')}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                Ir al Dashboard
-              </Button>
+              <div className="flex items-center gap-3">
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold bg-muted/30 px-3 py-1.5 rounded-full border border-muted-foreground/10">
+                  <UserCheck className="h-3.5 w-3.5 text-blue-400" />
+                  {user?.isAnonymous ? 'Invitado' : user?.email}
+                </span>
+                <Button
+                  onClick={() => router.push('/dashboard')}
+                  className="bg-blue-600 hover:bg-blue-700 font-semibold"
+                >
+                  Ir al Dashboard
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={logout}
+                  className="text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                  title="Cerrar Sesión"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
             ) : (
               <>
                 <Button
@@ -133,30 +155,107 @@ export function LandingPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-center mb-16"
         >
-          <h2 className="text-5xl sm:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Tu Analista de Datos
-            <span className="block bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-              Impulsado por IA
-            </span>
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
-            Carga datos, haz preguntas en lenguaje natural y obtén insights valiosos al instante.
-            Sin configuraciones complicadas, sin curva de aprendizaje.
-          </p>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="inline-block"
-          >
-            <Button
-              onClick={handleGuestAccess}
-              className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer"
-            >
-              Comienza cargando un archivo CSV
-            </Button>
-          </motion.div>
+          {isAuthenticated ? (
+            <>
+              <h2 className="text-5xl sm:text-6xl font-bold font-display text-foreground mb-6 leading-tight">
+                ¡Hola de nuevo,{' '}
+                <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                  {user?.displayName || (user?.email ? user.email.split('@')[0] : 'Usuario')}!
+                </span>
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
+                Tu workspace inteligente está listo. Sigue depurando, ordenando y explorando tus datasets con el poder de la IA.
+              </p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              >
+                <Button
+                  onClick={() => router.push('/dashboard')}
+                  className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <LayoutDashboard className="h-5 w-5" />
+                  Ir al Dashboard
+                </Button>
+                <Button
+                  onClick={logout}
+                  variant="outline"
+                  className="px-8 py-6 h-auto rounded-lg border-muted-foreground/20 text-muted-foreground hover:text-foreground hover:bg-muted/50 text-base sm:text-lg transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Cerrar Sesión
+                </Button>
+              </motion.div>
+            </>
+          ) : isRegisteredUser ? (
+            <>
+              <h2 className="text-5xl sm:text-6xl font-bold font-display text-foreground mb-6 leading-tight">
+                ¡Bienvenido de vuelta a{' '}
+                <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                  DataMind!
+                </span>
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
+                Inicia sesión para volver a acceder a tu historial de datasets y tus conversaciones personalizadas con la IA.
+              </p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              >
+                <Button
+                  onClick={() => router.push('/auth/login')}
+                  className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer flex items-center gap-2"
+                >
+                  Iniciar Sesión
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+                <Button
+                  onClick={handleGuestAccess}
+                  variant="outline"
+                  className="px-8 py-6 h-auto rounded-lg border-blue-500/30 text-blue-400 hover:bg-blue-950/20 text-base sm:text-lg transition-all cursor-pointer"
+                >
+                  Probar como Invitado
+                </Button>
+              </motion.div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-5xl sm:text-6xl font-bold font-display text-foreground mb-6 leading-tight">
+                Tu Analista de Datos
+                <span className="block bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                  Impulsado por IA
+                </span>
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
+                Carga datos, haz preguntas en lenguaje natural y obtén insights valiosos al instante.
+                Sin configuraciones complicadas, sin curva de aprendizaje.
+              </p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              >
+                <Button
+                  onClick={handleGuestAccess}
+                  className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer"
+                >
+                  Comenzar Gratis (Invitado)
+                </Button>
+                <Button
+                  onClick={() => router.push('/auth/register')}
+                  variant="outline"
+                  className="px-8 py-6 h-auto rounded-lg border-muted-foreground/20 text-muted-foreground hover:text-foreground hover:bg-muted/50 text-base sm:text-lg transition-all cursor-pointer"
+                >
+                  Registrarse
+                </Button>
+              </motion.div>
+            </>
+          )}
         </motion.div>
 
         {/* Features Grid */}

@@ -32,7 +32,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <Card className="p-6 border-muted-foreground/20">
-            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 font-display">
               <TrendingUp className="h-4 w-4 text-blue-500" />
               Estadísticas
             </h3>
@@ -93,7 +93,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <Card className="p-6 border-muted-foreground/20">
-            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 font-display">
               <Zap className="h-4 w-4 text-amber-500" />
               Insights Principales
             </h3>
@@ -123,7 +123,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <Card className="p-6 border-muted-foreground/20">
-            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 font-display">
               <BarChart3 className="h-4 w-4 text-green-500" />
               Visualizaciones Recomendadas
             </h3>

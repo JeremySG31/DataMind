@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
+import { z } from 'zod';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limiter';
+
+const chatInputSchema = z.object({
+  message: z.string().min(1, 'La pregunta no puede estar vacía').max(2000, 'Mensaje demasiado largo (máximo 2000 caracteres)'),
+  data: z.array(z.record(z.any())).min(1, 'El dataset debe tener al menos una fila'),
+  columns: z.array(z.string()).min(1, 'El dataset debe tener al menos una columna'),
+  history: z.array(
+    z.object({
+      role: z.enum(['user', 'assistant', 'system']),
+      content: z.string().max(4000)
+    })
+  ).optional(),
+});
 
 // Usar OpenRouter como proveedor OpenAI compatible
 const openrouter = createOpenAI({
@@ -10,14 +24,44 @@ const openrouter = createOpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, data, columns, history } = await request.json();
-
-    if (!message || !data || !columns) {
+    // Rate limiting: máximo 20 peticiones por minuto por IP
+    const ip = getClientIp(request);
+    const rateLimitResult = checkRateLimit(ip, { limit: 20, windowMs: 60 * 1000 });
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: 'Parámetros inválidos' },
+        { error: 'Demasiadas peticiones. Por favor espera un momento antes de continuar.' },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': '20',
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(Math.floor(rateLimitResult.resetAt / 1000)),
+            'Retry-After': String(Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)),
+          },
+        }
+      );
+    }
+
+    // Validar tamaño de la petición (máximo 2MB)
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: 'Petición demasiado grande (máximo 2MB)' },
+        { status: 413 }
+      );
+    }
+
+    const body = await request.json();
+    const parseResult = chatInputSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Parámetros inválidos', details: parseResult.error.flatten() },
         { status: 400 }
       );
     }
+
+    const { message, data, columns, history } = parseResult.data;
 
     if (!process.env.OPENROUTER_API_KEY) {
       return NextResponse.json(
@@ -27,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Preparar contexto del dataset
-    const sampleData = data.slice(0, 10);
+    const sampleData = data.slice(0, 5); // Reducido a 5 para reducir latencia
     const dataPreview = JSON.stringify(sampleData, null, 2);
     const stats = calculateBasicStats(data, columns);
 
@@ -44,7 +88,7 @@ INFORMACIÓN DEL DATASET:
 - Total de filas: ${data.length}
 - Estadísticas básicas: ${JSON.stringify(stats)}
 
-MUESTRA DE DATOS (primeras 10 filas):
+MUESTRA DE DATOS (primeras 5 filas):
 ${dataPreview}
 
 HISTORIAL DE CONVERSACIÓN:
@@ -54,7 +98,7 @@ PREGUNTA DEL USUARIO:
 ${message}
 
 Instrucciones de Respuesta:
-1. Proporciona una respuesta clara, concisa y útil basada en el análisis del dataset. Intenta proporcionar información cuantitativa y valiosa para el negocio.
+1. Proporciona una respuesta clara, extremadamente concisa y útil basada en el análisis. Sé directo y ve al grano (máximo 2 párrafos cortos o 1 párrafo y una lista de viñetas breves). Evita rodeos, saludos o introducciones innecesarias.
 2. Responde en español.
 3. SI consideras que la respuesta o los datos discutidos se verían mejor representados visualmente, incluye al final de tu respuesta (en una línea nueva y separada) un bloque JSON exacto con la configuración del gráfico recomendado. Este bloque JSON debe ser de la siguiente manera:
 \`\`\`json
@@ -66,12 +110,12 @@ Instrucciones de Respuesta:
   "title": "Título corto y descriptivo del gráfico"
 }
 \`\`\`
-Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan EXACTAMENTE con los nombres de las columnas provistas arriba. Si el gráfico es de dispersión o barra, asegúrate de que al menos la columna "y" sea numérica. No inventes nombres de columnas.`;
+Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan con los nombres de las columnas provistas arriba. Si el gráfico es de barra o línea, la columna "y" debe ser numérica. No inventes nombres de columnas.`;
 
     const response = await generateText({
-      model: openrouter('google/gemini-2.5-flash'),
+      model: openrouter('openai/gpt-oss-120b:free'),
       prompt: prompt,
-      maxOutputTokens: 2000,
+      maxOutputTokens: 800, // Reducido para acelerar tiempos de respuesta
     });
 
     return NextResponse.json({

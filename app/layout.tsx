@@ -1,11 +1,26 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Plus_Jakarta_Sans, Space_Grotesk, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/app/providers'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans-custom',
+  display: 'swap',
+});
+
+const spaceGrotesque = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-display-custom',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono-custom',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'DataMind - Analista de Datos Inteligente',
@@ -36,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className="dark">
+    <html lang="es" className={`dark ${plusJakartaSans.variable} ${spaceGrotesque.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground">
         <AuthProvider>
           {children}
@@ -46,3 +61,4 @@ export default function RootLayout({
     </html>
   )
 }
+

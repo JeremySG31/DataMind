@@ -21,7 +21,8 @@ export default function DashboardPage() {
     removeDataset, 
     selectDataset, 
     clearData,
-    cleanDataset
+    cleanDataset,
+    previewCleanDataset
   } = useDataAnalysis();
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function DashboardPage() {
             <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-400">
               <span className="font-bold text-white text-lg">DM</span>
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold font-display bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
               DataMind Dashboard
             </h1>
           </div>
@@ -91,6 +92,7 @@ export default function DashboardPage() {
           onSelect={selectDataset}
           onClear={clearData}
           onClean={cleanDataset}
+          previewCleanDataset={previewCleanDataset}
           isGuest={user?.isAnonymous || false}
           isLoading={analysisLoading}
         />

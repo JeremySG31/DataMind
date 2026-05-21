@@ -199,6 +199,159 @@ export function formatSurfaceForPlotly(data: SurfaceData) {
   };
 }
 
+// Crear superficie binned a partir de datos reales de X, Y, Z
+export function createBinnedSurfaceData(
+  xData: number[],
+  yData: number[],
+  zData: number[],
+  gridSize: number = 20
+): SurfaceData {
+  const cleanX = xData.filter((v) => typeof v === 'number' && !isNaN(v));
+  const cleanY = yData.filter((v) => typeof v === 'number' && !isNaN(v));
+  const cleanZ = zData.filter((v) => typeof v === 'number' && !isNaN(v));
+  
+  if (cleanX.length === 0 || cleanY.length === 0 || cleanZ.length === 0) {
+    return { x: [], y: [], z: [] };
+  }
+
+  const minX = Math.min(...cleanX);
+  const maxX = Math.max(...cleanX);
+  const minY = Math.min(...cleanY);
+  const maxY = Math.max(...cleanY);
+
+  // Si no hay rango, devolver cuadrícula básica
+  if (minX === maxX || minY === maxY) {
+    return { x: [minX], y: [minY], z: [[cleanZ[0] || 0]] };
+  }
+
+  const xCoords: number[] = [];
+  const yCoords: number[] = [];
+  const xStep = (maxX - minX) / (gridSize - 1);
+  const yStep = (maxY - minY) / (gridSize - 1);
+
+  for (let j = 0; j < gridSize; j++) {
+    xCoords.push(minX + j * xStep);
+  }
+  for (let i = 0; i < gridSize; i++) {
+    yCoords.push(minY + i * yStep);
+  }
+
+  // Inicializar acumuladores y contadores
+  const zSum: number[][] = Array(gridSize)
+    .fill(null)
+    .map(() => Array(gridSize).fill(0));
+  const zCount: number[][] = Array(gridSize)
+    .fill(null)
+    .map(() => Array(gridSize).fill(0));
+
+  const len = Math.min(cleanX.length, cleanY.length, cleanZ.length);
+  for (let idx = 0; idx < len; idx++) {
+    const xVal = cleanX[idx];
+    const yVal = cleanY[idx];
+    const zVal = cleanZ[idx];
+
+    let xBin = Math.floor((xVal - minX) / xStep);
+    let yBin = Math.floor((yVal - minY) / yStep);
+
+    xBin = Math.max(0, Math.min(gridSize - 1, xBin));
+    yBin = Math.max(0, Math.min(gridSize - 1, yBin));
+
+    zSum[yBin][xBin] += zVal;
+    zCount[yBin][xBin] += 1;
+  }
+
+  const z: number[][] = Array(gridSize)
+    .fill(null)
+    .map(() => Array(gridSize).fill(0));
+
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      if (zCount[i][j] > 0) {
+        z[i][j] = zSum[i][j] / zCount[i][j];
+      } else {
+        z[i][j] = null as any;
+      }
+    }
+  }
+
+  // Interpolación de vecinos para rellenar vacíos
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      if (z[i][j] === null) {
+        let sum = 0;
+        let count = 0;
+        const neighbors = [
+          [i - 1, j],
+          [i + 1, j],
+          [i, j - 1],
+          [i, j + 1],
+          [i - 1, j - 1],
+          [i - 1, j + 1],
+          [i + 1, j - 1],
+          [i + 1, j + 1],
+        ];
+
+        neighbors.forEach(([ni, nj]) => {
+          if (
+            ni >= 0 &&
+            ni < gridSize &&
+            nj >= 0 &&
+            nj < gridSize &&
+            z[ni][nj] !== null
+          ) {
+            sum += z[ni][nj];
+            count++;
+          }
+        });
+
+        if (count > 0) {
+          z[i][j] = sum / count;
+        } else {
+          z[i][j] = 0;
+        }
+      }
+    }
+  }
+
+  return {
+    x: xCoords,
+    y: yCoords,
+    z,
+  };
+}
+
+// Formatear gráfico de líneas 3D para Plotly
+export function formatLine3DForPlotly(points: Scatter3DPoint[], color: string = '#3b82f6') {
+  return {
+    x: points.map(p => p.x),
+    y: points.map(p => p.y),
+    z: points.map(p => p.z),
+    mode: 'lines+markers',
+    line: {
+      width: 4,
+      color: color,
+    },
+    marker: {
+      size: 4,
+      color: color,
+    },
+    text: points.map(p => p.label || ''),
+    type: 'scatter3d',
+  };
+}
+
+// Formatear gráfico de malla 3D para Plotly
+export function formatMesh3DForPlotly(points: Scatter3DPoint[], color: string = '#3b82f6') {
+  return {
+    x: points.map(p => p.x),
+    y: points.map(p => p.y),
+    z: points.map(p => p.z),
+    type: 'mesh3d',
+    opacity: 0.5,
+    color: color,
+  };
+}
+
 // Layout estándar para gráficos 3D
 export function get3DLayout(config: Plot3DConfig) {
   return {
@@ -211,5 +364,11 @@ export function get3DLayout(config: Plot3DConfig) {
     height: 600,
     margin: { l: 0, r: 0, b: 0, t: 40 },
     hovermode: 'closest',
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: {
+      color: '#a3a3a3',
+      family: 'Inter, sans-serif',
+    },
   };
 }

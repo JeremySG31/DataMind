@@ -75,8 +75,9 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: var(--font-sans-custom), sans-serif;
+  --font-display: var(--font-display-custom), sans-serif;
+  --font-mono: var(--font-mono-custom), monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -121,5 +122,32 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.4 0 0 / 0.5);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.5 0 0 / 0.7);
+  }
+}
+
+@layer utilities {
+  /* Slow spin animation used in data-storytelling Compass icon */
+  .animate-spin-slow {
+    animation: spin 6s linear infinite;
+  }
+
+  /* Pulse animation variant */
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 }

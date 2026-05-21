@@ -72,6 +72,10 @@ export function useAuth() {
       setError(null);
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('datamind_registered_user', 'true');
+      }
+
       // Guardar información adicional en la colección 'users' de Firestore
       if (db && result.user) {
         try {
@@ -112,6 +116,11 @@ export function useAuth() {
       setIsLoading(true);
       setError(null);
       const result = await signInWithEmailAndPassword(auth, email, password);
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('datamind_registered_user', 'true');
+      }
+
       return result.user;
     } catch (err: any) {
       const message =
@@ -165,6 +174,10 @@ export function useAuth() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('datamind_registered_user', 'true');
+      }
+
       // Sincronizar con Firestore
       if (db && result.user) {
         try {
@@ -198,6 +211,10 @@ export function useAuth() {
       const provider = new GithubAuthProvider();
       const result = await signInWithPopup(auth, provider);
       
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('datamind_registered_user', 'true');
+      }
+
       // Sincronizar con Firestore
       if (db && result.user) {
         try {

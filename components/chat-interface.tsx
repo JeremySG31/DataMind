@@ -23,6 +23,8 @@ import {
   Bar,
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip as ChartTooltip,
@@ -31,6 +33,137 @@ import {
   PieChart,
   Pie
 } from 'recharts';
+
+const findActualKey = (suggestedKey: string, availableColumns: string[]): string => {
+  if (!suggestedKey) return '';
+  // 1. Coincidencia exacta
+  if (availableColumns.includes(suggestedKey)) return suggestedKey;
+  
+  // 2. Coincidencia sin distinguir mayúsculas/minúsculas
+  const lowerSuggested = suggestedKey.toLowerCase();
+  const caseInsensitiveMatch = availableColumns.find(c => c.toLowerCase() === lowerSuggested);
+  if (caseInsensitiveMatch) return caseInsensitiveMatch;
+  
+  // 3. Coincidencia parcial o de subcadena
+  const substringMatch = availableColumns.find(
+    c => c.toLowerCase().includes(lowerSuggested) || lowerSuggested.includes(c.toLowerCase())
+  );
+  if (substringMatch) return substringMatch;
+  
+  // 4. Fallback a la sugerida
+  return suggestedKey;
+};
+
+function parseMarkdownToJSX(text: string): React.ReactNode {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let listItems: React.ReactNode[] = [];
+
+  const parseInlineStyles = (str: string): React.ReactNode[] => {
+    const parts: React.ReactNode[] = [];
+    let currentIdx = 0;
+    
+    const regex = /(\*\*|`|\*)(.*?)\1/g;
+    let match;
+    
+    while ((match = regex.exec(str)) !== null) {
+      const matchIndex = match.index;
+      if (matchIndex > currentIdx) {
+        parts.push(str.substring(currentIdx, matchIndex));
+      }
+      
+      const type = match[1];
+      const content = match[2];
+      
+      if (type === '**') {
+        parts.push(<strong key={matchIndex} className="font-bold text-foreground">{content}</strong>);
+      } else if (type === '*') {
+        parts.push(<em key={matchIndex} className="italic text-foreground/90">{content}</em>);
+      } else if (type === '`') {
+        parts.push(
+          <code key={matchIndex} className="px-1.5 py-0.5 rounded bg-muted-foreground/10 text-blue-400 font-mono text-xs">
+            {content}
+          </code>
+        );
+      }
+      
+      currentIdx = regex.lastIndex;
+    }
+    
+    if (currentIdx < str.length) {
+      parts.push(str.substring(currentIdx));
+    }
+    
+    return parts.length > 0 ? parts : [str];
+  };
+
+  const flushList = (key: number) => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`list-${key}`} className="list-disc pl-5 mb-3 space-y-1 text-muted-foreground">
+          {listItems}
+        </ul>
+      );
+      listItems = [];
+    }
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('### ')) {
+      flushList(index);
+      elements.push(
+        <h4 key={index} className="text-sm font-bold text-foreground mt-3 mb-1.5 flex items-center gap-1.5 font-display">
+          <span className="w-1 h-3 rounded bg-blue-500 inline-block" />
+          {parseInlineStyles(trimmed.slice(4))}
+        </h4>
+      );
+    } else if (trimmed.startsWith('## ')) {
+      flushList(index);
+      elements.push(
+        <h3 key={index} className="text-base font-extrabold text-foreground mt-4 mb-2 font-display">
+          {parseInlineStyles(trimmed.slice(3))}
+        </h3>
+      );
+    } else if (trimmed.startsWith('# ')) {
+      flushList(index);
+      elements.push(
+        <h2 key={index} className="text-lg font-black text-foreground mt-4 mb-2 font-display">
+          {parseInlineStyles(trimmed.slice(2))}
+        </h2>
+      );
+    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      listItems.push(
+        <li key={index} className="text-sm leading-relaxed text-foreground/80">
+          {parseInlineStyles(trimmed.slice(2))}
+        </li>
+      );
+    } else if (/^\d+\.\s/.test(trimmed)) {
+      flushList(index);
+      const content = trimmed.replace(/^\d+\.\s/, '');
+      const num = trimmed.match(/^\d+/)?.[0] || '1';
+      elements.push(
+        <div key={index} className="flex gap-2 text-sm leading-relaxed text-foreground/85 mb-2 pl-1">
+          <span className="font-bold text-blue-400 shrink-0">{num}.</span>
+          <div>{parseInlineStyles(content)}</div>
+        </div>
+      );
+    } else if (trimmed === '') {
+      flushList(index);
+    } else {
+      flushList(index);
+      elements.push(
+        <p key={index} className="text-sm leading-relaxed text-foreground/85 mb-2.5">
+          {parseInlineStyles(line)}
+        </p>
+      );
+    }
+  });
+
+  flushList(lines.length);
+  return <div className="space-y-1">{elements}</div>;
+}
 
 interface ChatInterfaceProps {
   data: DataRow[];
@@ -98,6 +231,18 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
   const submitQuestion = async (questionText: string) => {
     if (!questionText.trim() || isLoading) return;
 
+    // Limit message length client-side (matches server Zod schema)
+    if (questionText.length > 2000) {
+      const truncationMsg: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: '⚠️ Tu mensaje es demasiado largo (máximo 2000 caracteres). Por favor, resúmelo.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, truncationMsg]);
+      return;
+    }
+
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -121,7 +266,20 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
         }),
       });
 
-      if (!response.ok) throw new Error('Error en la respuesta');
+      if (!response.ok) {
+        let errorText = 'Error al procesar tu pregunta. Por favor intenta de nuevo.';
+        try {
+          const errorData = await response.json();
+          if (response.status === 429) {
+            errorText = '⏳ Has enviado demasiados mensajes. Por favor espera un momento antes de continuar.';
+          } else if (errorData.error) {
+            errorText = `❌ ${errorData.error}`;
+          }
+        } catch {
+          // If response is not JSON, use the default message
+        }
+        throw new Error(errorText);
+      }
 
       const result = await response.json();
       const assistantMessage: ChatMessage = {
@@ -132,12 +290,12 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Lo siento, hubo un error procesando tu pregunta. Por favor verifica tu conexión y que el token de OpenRouter esté configurado.',
+        content: error.message || 'Lo siento, hubo un error procesando tu pregunta. Por favor verifica tu conexión y que el token de OpenRouter esté configurado.',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -183,10 +341,13 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
   };
 
   const getChartData = (xKey: string, yKey: string) => {
+    const resolvedX = findActualKey(xKey, columns);
+    const resolvedY = findActualKey(yKey, columns);
+    
     // Tomar una muestra representativa (máx 15 registros) para no saturar el gráfico del chat
     return data.slice(0, 15).map(row => ({
-      name: String(row[xKey] || ''),
-      value: typeof row[yKey] === 'number' ? row[yKey] : parseFloat(String(row[yKey])) || 0
+      name: String(row[resolvedX] !== undefined ? row[resolvedX] : ''),
+      value: typeof row[resolvedY] === 'number' ? row[resolvedY] : parseFloat(String(row[resolvedY])) || 0
     }));
   };
 
@@ -254,7 +415,9 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
                             : 'bg-muted/80 text-foreground rounded-tl-none border border-muted-foreground/10 backdrop-blur-sm'
                         }`}
                       >
-                        <p className="whitespace-pre-line break-words">{text}</p>
+                        <div className="break-words space-y-1">
+                          {parseMarkdownToJSX(text)}
+                        </div>
 
                         {/* Inline Interactive Chart Rendering */}
                         {chart && chartData.length > 0 && (
@@ -262,49 +425,63 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.3, delay: 0.2 }}
-                            className="mt-4 p-3 bg-background/80 border border-muted-foreground/15 rounded-xl space-y-2 overflow-hidden shadow-inner"
+                            className="mt-4 p-3 bg-slate-950/40 border border-blue-500/20 backdrop-blur-md rounded-xl space-y-2 overflow-hidden shadow-lg"
                           >
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] font-bold text-foreground/90 flex items-center gap-1.5">
-                                <TrendingUp className="h-3.5 w-3.5 text-blue-400" />
+                                <TrendingUp className="h-3.5 w-3.5 text-blue-400 animate-pulse" />
                                 {chart.title}
                               </span>
-                              <span className="text-[9px] text-muted-foreground">Recharts Inline</span>
+                              <span className="text-[9px] text-blue-400 font-semibold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                                Visualización IA
+                              </span>
                             </div>
                             <div className="h-[180px] w-full mt-2">
                               {chart.chartType === 'line' && (
                                 <ResponsiveContainer width="100%" height="100%">
-                                  <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                                  <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                                    <defs>
+                                      <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4}/>
+                                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0}/>
+                                      </linearGradient>
+                                    </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                     <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={9} />
                                     <YAxis stroke="rgba(255,255,255,0.4)" fontSize={9} />
                                     <ChartTooltip
                                       contentStyle={{
-                                        backgroundColor: 'rgba(0,0,0,0.85)',
-                                        border: '1px solid rgba(255,255,255,0.15)',
+                                        backgroundColor: 'rgba(15,23,42,0.95)',
+                                        border: '1px solid rgba(59,130,246,0.2)',
                                         borderRadius: '8px',
                                         fontSize: '11px',
                                       }}
                                     />
-                                    <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                                  </LineChart>
+                                    <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2.5} fill="url(#areaGradient)" />
+                                  </AreaChart>
                                 </ResponsiveContainer>
                               )}
                               {chart.chartType === 'bar' && (
                                 <ResponsiveContainer width="100%" height="100%">
                                   <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                                    <defs>
+                                      <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                                        <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.2}/>
+                                      </linearGradient>
+                                    </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                     <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={9} />
                                     <YAxis stroke="rgba(255,255,255,0.4)" fontSize={9} />
                                     <ChartTooltip
                                       contentStyle={{
-                                        backgroundColor: 'rgba(0,0,0,0.85)',
-                                        border: '1px solid rgba(255,255,255,0.15)',
+                                        backgroundColor: 'rgba(15,23,42,0.95)',
+                                        border: '1px solid rgba(59,130,246,0.2)',
                                         borderRadius: '8px',
                                         fontSize: '11px',
                                       }}
                                     />
-                                    <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="value" fill="url(#barGradient)" radius={[4, 4, 0, 0]} />
                                   </BarChart>
                                 </ResponsiveContainer>
                               )}
@@ -325,8 +502,8 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
                                     </Pie>
                                     <ChartTooltip
                                       contentStyle={{
-                                        backgroundColor: 'rgba(0,0,0,0.85)',
-                                        border: '1px solid rgba(255,255,255,0.15)',
+                                        backgroundColor: 'rgba(15,23,42,0.95)',
+                                        border: '1px solid rgba(59,130,246,0.2)',
                                         borderRadius: '8px',
                                         fontSize: '11px',
                                       }}

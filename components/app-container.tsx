@@ -17,7 +17,8 @@ export function AppContainer() {
     removeDataset, 
     selectDataset, 
     clearData,
-    cleanDataset
+    cleanDataset,
+    previewCleanDataset
   } = useDataAnalysis();
 
   return (
@@ -96,6 +97,7 @@ export function AppContainer() {
                 onSelect={selectDataset}
                 onClear={clearData}
                 onClean={cleanDataset}
+                previewCleanDataset={previewCleanDataset}
               />
             </motion.main>
           )}

@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
+import { z } from 'zod';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limiter';
+
+// Schema de validación Zod
+const analyzeInputSchema = z.object({
+  data: z.array(z.record(z.any())).min(1, 'El dataset debe tener al menos una fila'),
+  columns: z.array(z.string()).min(1, 'El dataset debe tener al menos una columna'),
+});
 
 // Usar OpenRouter como proveedor OpenAI compatible
 const openrouter = createOpenAI({
@@ -10,14 +18,36 @@ const openrouter = createOpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { data, columns } = await request.json();
-
-    if (!data || !columns) {
+    // Rate limiting: máximo 30 peticiones por minuto por IP
+    const ip = getClientIp(request);
+    const rateLimitResult = checkRateLimit(ip, { limit: 30, windowMs: 60 * 1000 });
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: 'Datos inválidos' },
+        { error: 'Demasiadas peticiones. Por favor espera un momento.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)) } }
+      );
+    }
+
+    // Validar tamaño del cuerpo de la petición (máximo 2MB) para prevenir ataques de denegación de servicio (DoS)
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: 'Petición demasiado grande (máximo 2MB)' },
+        { status: 413 }
+      );
+    }
+
+    const body = await request.json();
+    const parseResult = analyzeInputSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: parseResult.error.flatten() },
         { status: 400 }
       );
     }
+
+    const { data, columns } = parseResult.data;
 
     if (!process.env.OPENROUTER_API_KEY) {
       return NextResponse.json(
@@ -46,7 +76,7 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openrouter('google/gemini-2.5-flash'),
+      model: openrouter('openai/gpt-oss-120b:free'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });
