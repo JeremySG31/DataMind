@@ -6,12 +6,16 @@ import { checkRateLimit, getClientIp } from '@/lib/rate-limiter';
 
 const chatInputSchema = z.object({
   message: z.string().min(1, 'La pregunta no puede estar vacía').max(2000, 'Mensaje demasiado largo (máximo 2000 caracteres)'),
-  data: z.array(z.record(z.any())).min(1, 'El dataset debe tener al menos una fila'),
+  // data is now a SAMPLE (max 50 rows) sent by the client — never the full dataset
+  data: z.array(z.record(z.any())).min(1, 'El dataset debe tener al menos una fila').max(100),
   columns: z.array(z.string()).min(1, 'El dataset debe tener al menos una columna'),
+  // Optional: pre-computed stats sent by the client (avoids server-side recomputation)
+  totalRows: z.number().optional(),
+  columnStats: z.record(z.any()).optional(),
   history: z.array(
     z.object({
       role: z.enum(['user', 'assistant', 'system']),
-      content: z.string().max(4000)
+      content: z.string().max(4000),
     })
   ).optional(),
 });
@@ -42,11 +46,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar tamaño de la petición (máximo 2MB)
+    // Validar tamaño de la petición (máximo 512KB — payload debería ser < 50KB con la muestra)
     const contentLength = request.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) {
+    if (contentLength && parseInt(contentLength) > 512 * 1024) {
       return NextResponse.json(
-        { error: 'Petición demasiado grande (máximo 2MB)' },
+        { error: 'Petición demasiado grande. El cliente está enviando demasiados datos.' },
         { status: 413 }
       );
     }
@@ -61,7 +65,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { message, data, columns, history } = parseResult.data;
+    const { message, data, columns, history, totalRows, columnStats } = parseResult.data;
 
     if (!process.env.OPENROUTER_API_KEY) {
       return NextResponse.json(
@@ -70,14 +74,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Preparar contexto del dataset
-    const sampleData = data.slice(0, 5); // Reducido a 5 para reducir latencia
-    const dataPreview = JSON.stringify(sampleData, null, 2);
-    const stats = calculateBasicStats(data, columns);
+    // Use client-provided stats if available, otherwise compute from sample
+    const statsContext = columnStats
+      ? JSON.stringify(columnStats)
+      : JSON.stringify(calculateBasicStats(data, columns));
 
-    // Construir historial para contexto
+    // Build a compact data preview (max 5 rows shown to AI)
+    const dataPreview = JSON.stringify(data.slice(0, 5), null, 2);
+    const rowCount = totalRows ?? data.length;
+
+    // Build conversation history context
     const chatHistory = (history || [])
-      .slice(-4) // Últimos 4 mensajes para contexto
+      .slice(-4) // last 4 messages max
       .map((msg: any) => `${msg.role === 'user' ? 'Usuario' : 'Asistente'}: ${msg.content}`)
       .join('\n');
 
@@ -85,10 +93,10 @@ export async function POST(request: NextRequest) {
 
 INFORMACIÓN DEL DATASET:
 - Columnas: ${columns.join(', ')}
-- Total de filas: ${data.length}
-- Estadísticas básicas: ${JSON.stringify(stats)}
+- Total de filas: ${rowCount}
+- Estadísticas por columna: ${statsContext}
 
-MUESTRA DE DATOS (primeras 5 filas):
+MUESTRA DE DATOS (primeras 5 filas del total de ${rowCount}):
 ${dataPreview}
 
 HISTORIAL DE CONVERSACIÓN:
@@ -132,7 +140,7 @@ Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan con los n
 
 function calculateBasicStats(data: any[], columns: string[]): Record<string, any> {
   const stats: Record<string, any> = {};
-  const numericColumns = columns.filter(col => 
+  const numericColumns = columns.filter(col =>
     data.some(row => typeof row[col] === 'number')
   );
 

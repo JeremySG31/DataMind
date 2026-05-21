@@ -27,11 +27,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar tamaño de la petición (máximo 2MB)
+    // Validar tamaño de la petición (máximo 512KB — el cliente envía un sample de 50 filas)
     const contentLength = request.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) {
+    if (contentLength && parseInt(contentLength) > 512 * 1024) {
       return NextResponse.json(
-        { error: 'Petición demasiado grande (máximo 2MB)' },
+        { error: 'Petición demasiado grande. El cliente está enviando demasiados datos.' },
         { status: 413 }
       );
     }

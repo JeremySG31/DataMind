@@ -289,9 +289,9 @@ export function useDataAnalysis() {
 
     try {
       const isExcel = file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
-      
+
       let parseResult: { columns: string[]; data: DataRow[] } | null = null;
-      
+
       if (isExcel) {
         const buffer = await file.arrayBuffer();
         parseResult = await parseExcelFile(file, buffer);
@@ -299,95 +299,138 @@ export function useDataAnalysis() {
         const text = await file.text();
         parseResult = await parseCSVFile(file, text);
       }
-      
+
       if (!parseResult) {
         setIsLoading(false);
         return;
       }
 
       const { columns, data } = parseResult;
-      const { processedData, analysis } = processData(columns, data);
+
+      // ── STEP 1: Process data in chunks to avoid blocking the UI thread ──
+      // For large datasets, we yield control back to the browser between chunks
+      const CHUNK_SIZE = 2000;
+      const processedData: DataRow[] = [];
+
+      for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+        const chunk = data.slice(i, i + CHUNK_SIZE);
+        const processedChunk = chunk.map(row => {
+          const newRow: DataRow = {};
+          for (const col of columns) {
+            const val = row[col];
+            const numVal = parseFloat(String(val));
+            newRow[col] = !isNaN(numVal) && String(val).trim() !== '' ? numVal : val;
+          }
+          return newRow;
+        });
+        processedData.push(...processedChunk);
+
+        // Yield every 2000 rows to keep UI responsive
+        if (i + CHUNK_SIZE < data.length) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      }
+
+      // Run analysis only on a sample for initial display speed
+      const analysisSample = processedData.length > 5000 ? processedData.slice(0, 5000) : processedData;
+      const analysis = analyzeData(analysisSample, columns);
 
       const datasetId = Date.now().toString();
       const fileSizeKB = (file.size / 1024).toFixed(1) + ' KB';
 
-      // Verificar si requiere limpieza automática
-      const check = checkIsDatasetCleanAndSorted(processedData, columns);
-      let appliedCleanOptions: CleanOptions | undefined = undefined;
-      let aiPrepExplanation: string | undefined = undefined;
-      let finalData = processedData;
-      let finalColumns = columns;
-
-      if (!check.isCleanAndSorted) {
-        try {
-          // Consultar sugerencias de limpieza a la API
-          const suggestResponse = await fetch('/api/prep-suggest', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              data: processedData.slice(0, 15),
-              columns: columns
-            })
-          });
-          if (suggestResponse.ok) {
-            const suggestion = await suggestResponse.json();
-            if (suggestion) {
-              const opts: CleanOptions = {
-                removeDuplicates: true,
-                nullAction: suggestion.nullAction || 'fill_mean_na',
-                sortByColumn: suggestion.sortByColumn || null,
-                sortOrder: suggestion.sortOrder || 'asc',
-                selectedColumns: suggestion.selectedColumns || columns,
-                trimStrings: true,
-                standardizeText: true,
-              };
-              appliedCleanOptions = opts;
-              aiPrepExplanation = suggestion.explanation;
-
-              // Aplicar limpieza inmediatamente
-              const cleaned = getCleanedData(processedData, columns, opts);
-              const colsToKeep = opts.selectedColumns.length > 0 ? opts.selectedColumns : columns;
-              const reProcessed = processData(colsToKeep, cleaned);
-              finalData = reProcessed.processedData;
-              finalColumns = colsToKeep;
-            }
-          }
-        } catch (e) {
-          console.error('Error en autolimpieza al cargar archivo:', e);
-        }
-      }
-
-      const newDataset: WorkspaceDataset = {
+      // ── STEP 2: Show the dataset immediately — before any AI call ──
+      const initialDataset: WorkspaceDataset = {
         id: datasetId,
         fileSize: fileSizeKB,
         filename: file.name,
-        rowCount: finalData.length,
-        columnCount: finalColumns.length,
-        columns: finalColumns,
-        data: finalData,
+        rowCount: processedData.length,
+        columnCount: columns.length,
+        columns,
+        data: processedData,
         originalData: processedData,
         originalColumns: columns,
-        appliedCleanOptions,
-        aiPrepExplanation,
         analysis: {
-          summary: aiPrepExplanation 
-            ? `Optimizado automáticamente con IA: ${aiPrepExplanation}`
-            : `Archivo cargado: ${file.name} con ${finalData.length} filas`,
+          summary: `Archivo cargado: ${file.name} con ${processedData.length} filas`,
           statistics: analysis.statistics || {},
           insights: analysis.insights || [],
           recommendedCharts: analysis.recommendedCharts || [],
         },
       };
 
-      setDatasets(prev => [...prev, newDataset]);
+      setDatasets(prev => [...prev, initialDataset]);
       setActiveDatasetId(datasetId);
+      // Stop showing loading spinner immediately — data is ready
+      setIsLoading(false);
+
+      // ── STEP 3: Run AI auto-clean in background (non-blocking) ──
+      // Only if dataset appears messy — check a quick heuristic
+      const quickCheck = checkIsDatasetCleanAndSorted(processedData, columns);
+      if (!quickCheck.isCleanAndSorted) {
+        // Fire and forget — don't block the user
+        (async () => {
+          try {
+            const suggestResponse = await fetch('/api/prep-suggest', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                data: processedData.slice(0, 15),
+                columns,
+              }),
+            });
+
+            if (!suggestResponse.ok) return;
+            const suggestion = await suggestResponse.json();
+            if (!suggestion) return;
+
+            const opts: CleanOptions = {
+              removeDuplicates: true,
+              nullAction: suggestion.nullAction || 'fill_mean_na',
+              sortByColumn: suggestion.sortByColumn || null,
+              sortOrder: suggestion.sortOrder || 'asc',
+              selectedColumns: suggestion.selectedColumns || columns,
+              trimStrings: true,
+              standardizeText: true,
+            };
+
+            const cleaned = getCleanedData(processedData, columns, opts);
+            const colsToKeep = opts.selectedColumns.length > 0 ? opts.selectedColumns : columns;
+            const { processedData: finalData, analysis: finalAnalysis } = processData(colsToKeep, cleaned);
+
+            // Update the dataset in state with cleaned version
+            setDatasets(prev =>
+              prev.map(ds =>
+                ds.id !== datasetId
+                  ? ds
+                  : {
+                      ...ds,
+                      rowCount: finalData.length,
+                      columnCount: colsToKeep.length,
+                      columns: colsToKeep,
+                      data: finalData,
+                      appliedCleanOptions: opts,
+                      aiPrepExplanation: suggestion.explanation,
+                      analysis: {
+                        summary: `Optimizado automáticamente con IA: ${suggestion.explanation}`,
+                        statistics: finalAnalysis.statistics || {},
+                        insights: finalAnalysis.insights || [],
+                        recommendedCharts: finalAnalysis.recommendedCharts || [],
+                      },
+                    }
+              )
+            );
+          } catch (e) {
+            console.warn('Auto-clean background job failed (non-blocking):', e);
+          }
+        })();
+      }
+
+      return; // loading was already set to false above
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const cleanDataset = useCallback((id: string, options?: CleanOptions) => {

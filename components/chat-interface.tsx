@@ -255,15 +255,60 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
     setIsLoading(true);
 
     try {
+      // ────────────────────────────────────────────────────────
+      // Compact data summary: avoid sending the full dataset.
+      // We send a 50-row sample + per-column statistics so the
+      // API always gets a payload well under 50 KB, regardless
+      // of how big the actual dataset is.
+      // ────────────────────────────────────────────────────────
+      const MAX_SAMPLE = 50;
+      const sample = data.length > MAX_SAMPLE
+        ? data.filter((_, i) => i % Math.ceil(data.length / MAX_SAMPLE) === 0).slice(0, MAX_SAMPLE)
+        : data;
+
+      // Build compact per-column stats for the AI context
+      const colStats: Record<string, any> = {};
+      for (const col of columns) {
+        const vals = data.map(r => r[col]).filter(v => v !== null && v !== undefined && v !== '');
+        const numVals = vals.filter(v => typeof v === 'number') as number[];
+        if (numVals.length > 0) {
+          const sorted = [...numVals].sort((a, b) => a - b);
+          colStats[col] = {
+            type: 'numeric',
+            count: numVals.length,
+            min: sorted[0],
+            max: sorted[sorted.length - 1],
+            mean: Math.round((numVals.reduce((a, b) => a + b, 0) / numVals.length) * 100) / 100,
+            nulls: data.length - vals.length,
+          };
+        } else {
+          const unique = new Set(vals.map(String));
+          const freq: Record<string, number> = {};
+          vals.forEach(v => { const k = String(v); freq[k] = (freq[k] || 0) + 1; });
+          const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([v, c]) => `${v}(${c})`);
+          colStats[col] = {
+            type: 'categorical',
+            count: vals.length,
+            unique: unique.size,
+            top,
+            nulls: data.length - vals.length,
+          };
+        }
+      }
+
+      const payload = {
+        message: questionText,
+        data: sample,
+        columns,
+        totalRows: data.length,
+        columnStats: colStats,
+        history: messages.slice(-6), // last 6 messages for context
+      };
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: questionText,
-          data,
-          columns,
-          history: messages,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {

@@ -6,8 +6,10 @@ import { checkRateLimit, getClientIp } from '@/lib/rate-limiter';
 
 // Schema de validación Zod
 const analyzeInputSchema = z.object({
-  data: z.array(z.record(z.any())).min(1, 'El dataset debe tener al menos una fila'),
+  data: z.array(z.record(z.any())).min(1, 'El dataset debe tener al menos una fila').max(100),
   columns: z.array(z.string()).min(1, 'El dataset debe tener al menos una columna'),
+  totalRows: z.number().optional(),
+  columnStats: z.record(z.any()).optional(),
 });
 
 // Usar OpenRouter como proveedor OpenAI compatible
@@ -28,11 +30,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar tamaño del cuerpo de la petición (máximo 2MB) para prevenir ataques de denegación de servicio (DoS)
+    // Validar tamaño del cuerpo de la petición (máximo 512KB — el cliente envía un sample de 50 filas)
     const contentLength = request.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) {
+    if (contentLength && parseInt(contentLength) > 512 * 1024) {
       return NextResponse.json(
-        { error: 'Petición demasiado grande (máximo 2MB)' },
+        { error: 'Petición demasiado grande. El cliente está enviando demasiados datos.' },
         { status: 413 }
       );
     }
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, columns } = parseResult.data;
+    const { data, columns, totalRows, columnStats } = parseResult.data;
 
     if (!process.env.OPENROUTER_API_KEY) {
       return NextResponse.json(
@@ -56,16 +58,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Preparar un resumen de los datos para el prompt
-    const sampleData = data.slice(0, 5);
-    const dataPreview = JSON.stringify(sampleData, null, 2);
+    // Usar stats del cliente si están disponibles, si no calcular del sample
+    const statsContext = columnStats
+      ? JSON.stringify(columnStats)
+      : JSON.stringify(calculateBasicStats(data, columns));
+
+    const dataPreview = JSON.stringify(data.slice(0, 5), null, 2);
+    const rowCount = totalRows ?? data.length;
 
     const prompt = `Analiza el siguiente dataset y proporciona insights valiosos:
 
 Columnas: ${columns.join(', ')}
-Total de filas: ${data.length}
+Total de filas: ${rowCount}
+Estadísticas por columna: ${statsContext}
 
-Primeras 5 filas de ejemplo:
+Muestra de datos (primeras 5 filas del total de ${rowCount}):
 ${dataPreview}
 
 Por favor proporciona:
@@ -106,4 +113,38 @@ Responde en formato JSON con las claves: summary, insights (array), recommendedC
       { status: 500 }
     );
   }
+}
+
+function calculateBasicStats(data: any[], columns: string[]): Record<string, any> {
+  const stats: Record<string, any> = {};
+  const numericColumns = columns.filter(col =>
+    data.some(row => typeof row[col] === 'number')
+  );
+
+  numericColumns.forEach(col => {
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+    let sum = 0;
+    let count = 0;
+
+    for (let i = 0; i < data.length; i++) {
+      const val = data[i][col];
+      if (typeof val === 'number' && !isNaN(val)) {
+        if (val < minVal) minVal = val;
+        if (val > maxVal) maxVal = val;
+        sum += val;
+        count++;
+      }
+    }
+
+    if (count > 0) {
+      stats[col] = {
+        min: minVal,
+        max: maxVal,
+        avg: (sum / count).toFixed(2),
+      };
+    }
+  });
+
+  return stats;
 }

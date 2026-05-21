@@ -6,13 +6,19 @@ export function analyzeData(data: DataRow[], columns: string[]): Partial<Analysi
   const insights: string[] = [];
   const recommendedCharts: string[] = [];
 
+  // Sample for stats — full scan would be O(n log n) per column for median/stddev
+  const MAX_STAT_ROWS = 5000;
+  const sampleData = data.length > MAX_STAT_ROWS
+    ? data.filter((_, i) => i % Math.ceil(data.length / MAX_STAT_ROWS) === 0)
+    : data;
+
   // Analizar cada columna numérica
   const numericColumns = columns.filter(col => {
-    return data.some(row => typeof row[col] === 'number');
+    return sampleData.some(row => typeof row[col] === 'number');
   });
 
   numericColumns.forEach(col => {
-    const values = data
+    const values = sampleData
       .map(row => row[col])
       .filter((val): val is number => typeof val === 'number');
 
@@ -54,10 +60,10 @@ export function analyzeData(data: DataRow[], columns: string[]): Partial<Analysi
   // Detectar patrones
   if (numericColumns.length > 0) {
     const firstNumCol = numericColumns[0];
-    const vals = data
+    const vals = sampleData
       .map(row => row[firstNumCol])
       .filter((val): val is number => typeof val === 'number');
-    
+
     if (vals.length > 0) {
       const avgValue = ss.mean(vals);
       insights.push(`Valor promedio de ${firstNumCol}: ${avgValue.toFixed(2)}`);
