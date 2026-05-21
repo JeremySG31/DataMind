@@ -244,7 +244,7 @@ export function LandingPage() {
                   onClick={handleGuestAccess}
                   className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer"
                 >
-                  Comenzar como Invitado
+                  Comenzar Gratis (Invitado)
                 </Button>
                 <Button
                   onClick={() => router.push('/auth/register')}
@@ -292,7 +292,10 @@ export function LandingPage() {
         >
           <div className="inline-block p-8 rounded-2xl border border-muted-foreground/20 bg-gradient-to-br from-blue-600/10 to-blue-400/5 backdrop-blur-sm">
             <p className="text-foreground mb-4">
-              Análisis de datos inteligente con modelos de IA.
+              🚀 Completamente gratis. Potenciado por IA abierta.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Usa OpenRouter para acceso a múltiples modelos de IA sin costo
             </p>
           </div>
         </motion.div>
@@ -306,7 +309,7 @@ export function LandingPage() {
         className="border-t border-muted-foreground/10 mt-20"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center text-muted-foreground">
-          <p>DataMind — Análisis de Datos Inteligente</p>
+          <p>Construido con React, Next.js y OpenRouter</p>
         </div>
       </motion.footer>
     </motion.div>
