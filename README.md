@@ -2,11 +2,11 @@
 
 **Analista de Datos Inteligente impulsado por IA**
 
-Carga tus archivos CSV, haz preguntas en lenguaje natural y obtén análisis, visualizaciones 3D interactivas e insights instantáneamente. Con autenticación Firebase, análisis IA con OpenRouter. Completamente gratis, sin configuraciones complicadas.
+Carga tus archivos CSV, haz preguntas en lenguaje natural y obtén análisis, visualizaciones 3D interactivas e insights instantáneamente. Con autenticación Firebase y análisis IA con OpenRouter.
 
 ## ✨ Características
 
-- **🔐 Autenticación**: Login y registro con Firebase (completamente gratis)
+- **🔐 Autenticación**: Login y registro con Firebase
 - **📤 Upload Fácil**: Arrastra y suelta archivos CSV o haz clic para seleccionar
 - **🤖 Análisis IA**: Obtén insights automáticos analizados por inteligencia artificial
 - **📈 Visualizaciones 2D y 3D**: Gráficos interactivos 2D (línea, barra, scatter, pie, área, radar, mixto) y **3D verdaderos** (scatter, burbuja, línea, superficie, malla) con WebGL
@@ -16,7 +16,7 @@ Carga tus archivos CSV, haz preguntas en lenguaje natural y obtén análisis, vi
 - **🧹 Depurador de Datos**: Limpia nulos, elimina duplicados, selecciona columnas y ordena filas
 - **⚡ Estadísticas**: Medias, medianas, desviación estándar y más
 - **🎨 Diseño Moderno**: Interfaz oscura, profesional y responsiva
-- **💰 Completamente Gratis**: Usa OpenRouter + Firebase sin costo alguno
+- **🔗 OpenRouter**: Modelos de IA vía API
 
 ## 🚀 Inicio Rápido
 
@@ -45,22 +45,14 @@ DataMind necesita dos configuraciones simples (ambas gratis):
 
 ### 1️⃣ OpenRouter (IA - OBLIGATORIO)
 
-DataMind usa **OpenRouter** para acceso a IA completamente gratis.
+DataMind usa **OpenRouter** para acceso a modelos de IA.
 
-1. **Crear cuenta gratuita**
-   - Ve a [https://openrouter.io](https://openrouter.io)
-   - Regístrate (es gratis y sin tarjeta de crédito)
-
-2. **Obtener API Key**
-   - Ve a [https://openrouter.io/keys](https://openrouter.io/keys)
-   - Copia tu API key (comienza con `sk-or-`)
-
-3. **Configurar variable de entorno**
+1. Ve a [https://openrouter.io](https://openrouter.io) y crea una cuenta
+2. Genera una API key en [https://openrouter.io/keys](https://openrouter.io/keys)
+3. Configura la variable de entorno:
    ```bash
-   # Copiar archivo de ejemplo
    cp .env.example .env.local
-   
-   # Editar .env.local y pegar la API key:
+   # Editar .env.local con tu API key:
    # OPENROUTER_API_KEY=tu_clave_aqui
    ```
 
@@ -147,25 +139,11 @@ Valor3,150,Más,2024
 - **Análisis**: simple-statistics + papaparse + ml-matrix
 - **Estado**: React Hooks + Context API
 
-## 🤖 Modelos de IA Disponibles
+## 🤖 Modelos de IA
 
-Por defecto usa **Mistral 7B** (súper rápido y gratis).
+Por defecto usa **Mistral 7B** vía OpenRouter.
 
-Otros disponibles en OpenRouter:
-- Llama 2 7B
-- Neural Chat 7B
-- Mixtral 8x7B
-- Y muchos más...
-
-Para cambiar de modelo, edita `/app/api/analyze/route.ts` y `/app/api/chat/route.ts`:
-
-```typescript
-// Cambiar esta línea:
-model: openrouter('mistral-7b-instruct'),
-
-// Por el modelo que prefieras:
-model: openrouter('meta-llama/llama-2-7b-chat'),
-```
+Para cambiar de modelo, edita `/app/api/analyze/route.ts` y `/app/api/chat/route.ts`.
 
 ## 📁 Estructura del Proyecto
 
@@ -295,6 +273,4 @@ Si encuentras problemas:
 
 ---
 
-**Hecho con ❤️ usando React, Next.js y OpenRouter**
-
-Carga tu primer CSV ahora y comienza a explorar datos con IA 🚀
+**Hecho con React, Next.js y OpenRouter**
