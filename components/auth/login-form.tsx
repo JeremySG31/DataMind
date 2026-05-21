@@ -103,6 +103,7 @@ export function LoginForm() {
   const getFriendlyError = (err: string | null) => {
     if (!err) return null;
     const errStr = String(err);
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'datamind-app-31';
     if (errStr.includes('auth/unauthorized-domain')) {
       return (
         <div className="space-y-1 text-left">
@@ -113,7 +114,7 @@ export function LoginForm() {
           <div className="text-xs pl-1 pt-1 space-y-1 opacity-90">
             <p><strong>Cómo solucionarlo:</strong></p>
             <ol className="list-decimal list-inside space-y-0.5">
-              <li>Abre la <a href="https://console.firebase.google.com/project/datamind-app-31/authentication/providers" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-200">Consola de Firebase</a>.</li>
+              <li>Abre la <a href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-200">Consola de Firebase</a>.</li>
               <li>Ve a <strong>Authentication &gt; Configuración &gt; Dominios autorizados</strong>.</li>
               <li>Añade tu dominio actual (ej: <code>localhost</code>, o el dominio donde esté publicada la web).</li>
             </ol>
@@ -131,7 +132,7 @@ export function LoginForm() {
           <div className="text-xs pl-1 pt-1 space-y-1 opacity-90">
             <p><strong>Cómo solucionarlo:</strong></p>
             <ol className="list-decimal list-inside space-y-0.5">
-              <li>Abre la <a href="https://console.firebase.google.com/project/datamind-app-31/authentication/providers" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-200">Consola de Firebase (Sign-in method)</a>.</li>
+              <li>Abre la <a href={`https://console.firebase.google.com/project/${projectId}/authentication/providers`} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-200">Consola de Firebase (Sign-in method)</a>.</li>
               <li>Haz clic en <strong>Agregar nuevo proveedor</strong> (si no lo has añadido).</li>
               <li>Selecciona <strong>Google</strong> (o GitHub), actívalo (con tu correo de soporte) y haz clic en <strong>Guardar</strong>.</li>
             </ol>

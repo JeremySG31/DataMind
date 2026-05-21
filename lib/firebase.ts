@@ -5,17 +5,20 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 // Tu configuración de Firebase
 // Obtén estos valores de tu proyecto en https://console.firebase.google.com
 const getAuthDomain = () => {
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'datamind-app-31';
+  const defaultDomain = `${projectId}.firebaseapp.com`;
+
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     // En desarrollo local (localhost), usamos el dominio seguro de Firebase por defecto
     // para evitar el error ERR_SSL_PROTOCOL_ERROR ya que tu entorno local corre bajo HTTP (sin SSL).
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'datamind-app-31.firebaseapp.com';
+      return defaultDomain;
     }
     // En producción (Vercel), usamos el host de tu aplicación que ya cuenta con SSL activo.
     return window.location.host;
   }
-  return 'datamind-app-31.firebaseapp.com';
+  return defaultDomain;
 };
 
 const firebaseConfig = {
@@ -31,8 +34,7 @@ const firebaseConfig = {
 const isFirebaseConfigured = () => {
   return !!(
     process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
-    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
   );
 };
 

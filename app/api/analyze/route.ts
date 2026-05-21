@@ -4,7 +4,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 
 // Usar OpenRouter como proveedor OpenAI compatible
 const openrouter = createOpenAI({
-  baseURL: 'https://openrouter.io/api/v1',
+  baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
@@ -46,7 +46,7 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openrouter('deepseek/deepseek-v4-flash:free'),
+      model: openrouter('google/gemini-2.5-flash'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });

@@ -7,10 +7,11 @@ const nextConfig = {
     unoptimized: true,
   },
   async rewrites() {
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'datamind-app-31';
     return [
       {
         source: '/__/auth/:path*',
-        destination: 'https://datamind-app-31.firebaseapp.com/__/auth/:path*',
+        destination: `https://${projectId}.firebaseapp.com/__/auth/:path*`,
       },
     ];
   },

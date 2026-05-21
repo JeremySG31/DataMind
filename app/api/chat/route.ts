@@ -4,7 +4,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 
 // Usar OpenRouter como proveedor OpenAI compatible
 const openrouter = createOpenAI({
-  baseURL: 'https://openrouter.io/api/v1',
+  baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
 });
 
@@ -69,7 +69,7 @@ Instrucciones de Respuesta:
 Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan EXACTAMENTE con los nombres de las columnas provistas arriba. Si el gráfico es de dispersión o barra, asegúrate de que al menos la columna "y" sea numérica. No inventes nombres de columnas.`;
 
     const response = await generateText({
-      model: openrouter('google/gemma-2-9b-it:free'),
+      model: openrouter('google/gemini-2.5-flash'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });
