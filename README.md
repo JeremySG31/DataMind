@@ -2,16 +2,18 @@
 
 **Analista de Datos Inteligente impulsado por IA**
 
-Carga tus archivos CSV, haz preguntas en lenguaje natural y obtén análisis, visualizaciones e insights instantáneamente. Con autenticación Firebase, análisis IA con OpenRouter. Completamente gratis, sin configuraciones complicadas.
+Carga tus archivos CSV, haz preguntas en lenguaje natural y obtén análisis, visualizaciones 3D interactivas e insights instantáneamente. Con autenticación Firebase, análisis IA con OpenRouter. Completamente gratis, sin configuraciones complicadas.
 
 ## ✨ Características
 
 - **🔐 Autenticación**: Login y registro con Firebase (completamente gratis)
 - **📤 Upload Fácil**: Arrastra y suelta archivos CSV o haz clic para seleccionar
 - **🤖 Análisis IA**: Obtén insights automáticos analizados por inteligencia artificial
-- **📈 Visualizaciones**: Gráficos interactivos (línea, barra, scatter, pie) que se adaptan automáticamente
+- **📈 Visualizaciones 2D y 3D**: Gráficos interactivos 2D (línea, barra, scatter, pie, área, radar, mixto) y **3D verdaderos** (scatter, burbuja, línea, superficie, malla) con WebGL
+- **🔄 Orbit Controls**: Gira, escala y panea gráficos 3D con el mouse — arrastra para orbitar, scroll para zoom
 - **💬 Chat Inteligente**: Haz preguntas sobre tus datos en lenguaje natural
 - **📋 Tabla de Datos**: Explora, busca y ordena tus datos
+- **🧹 Depurador de Datos**: Limpia nulos, elimina duplicados, selecciona columnas y ordena filas
 - **⚡ Estadísticas**: Medias, medianas, desviación estándar y más
 - **🎨 Diseño Moderno**: Interfaz oscura, profesional y responsiva
 - **💰 Completamente Gratis**: Usa OpenRouter + Firebase sin costo alguno
@@ -88,16 +90,22 @@ pnpm dev
 - Recibirás un análisis automático con insights principales
 - Ve estadísticas, patrones detectados y gráficos recomendados
 
-### 3. Visualizar Datos
-- Pestaña "Visualizaciones" con gráficos interactivos
-- Cambia entre línea, barra, scatter y pie charts
+### 3. Visualizar Datos (2D)
+- Pestaña "Visualizaciones" con gráficos interactivos 2D
+- Cambia entre línea, barra, scatter, pie, área, radar y mixto
 - Selecciona qué columnas visualizar
 
-### 4. Explorar Tabla
+### 4. Visualización 3D Interactiva
+- Pestaña "3D" con gráficos tridimensionales reales (WebGL)
+- Tipos: Scatter 3D, Burbuja 3D, Línea 3D, Superficie 3D, Malla 3D
+- Arrastra para orbitar, scroll para zoom, click derecho para paneo
+- Mapea color y tamaño por columna
+
+### 5. Explorar Tabla
 - Pestaña "Tabla de datos" con búsqueda y filtrado
 - Ordena por columnas haciendo clic en los encabezados
 
-### 5. Chat con IA
+### 6. Chat con IA
 - Pestaña "Chat con IA" para hacer preguntas
 - Ejemplos:
   - "Cuál es la venta promedio?"
@@ -130,12 +138,13 @@ Valor3,150,Más,2024
 
 - **Frontend**: Next.js 16 + React 19 + TypeScript
 - **UI**: shadcn/ui + Tailwind CSS
-- **Gráficos**: Recharts
+- **Gráficos 2D**: Recharts
+- **Gráficos 3D**: Three.js + OrbitControls (WebGL)
 - **Animaciones**: Framer Motion
 - **IA**: AI SDK v6 + OpenRouter
 - **Autenticación**: Firebase Auth (Email/Password)
 - **Base de Datos**: Firestore (opcional)
-- **Análisis**: simple-statistics + papaparse
+- **Análisis**: simple-statistics + papaparse + ml-matrix
 - **Estado**: React Hooks + Context API
 
 ## 🤖 Modelos de IA Disponibles
@@ -165,24 +174,41 @@ datamind/
 ├── app/
 │   ├── api/
 │   │   ├── analyze/      # Análisis IA de datos
-│   │   └── chat/         # Chat conversacional
+│   │   ├── chat/         # Chat conversacional
+│   │   └── prep-suggest/ # Sugerencias de preparación
+│   ├── auth/
+│   │   ├── login/        # Página de inicio de sesión
+│   │   └── register/     # Página de registro
+│   ├── dashboard/        # Dashboard principal
 │   ├── layout.tsx        # Layout global
 │   ├── page.tsx          # Página principal
 │   └── globals.css       # Estilos globales
 ├── components/
+│   ├── ui/               # Componentes shadcn/ui
 │   ├── app-container.tsx # Contenedor principal
 │   ├── landing-page.tsx  # Landing page
 │   ├── data-upload.tsx   # Upload de archivos
 │   ├── dashboard.tsx     # Dashboard principal
-│   ├── analysis-results.tsx
-│   ├── data-visualizations.tsx
-│   ├── data-table.tsx
-│   └── chat-interface.tsx
+│   ├── analysis-results.tsx  # Resultados de análisis IA
+│   ├── data-visualizations.tsx # Gráficos 2D (Recharts)
+│   ├── visualization-3d.tsx   # Gráficos 3D (Three.js)
+│   ├── data-table.tsx    # Tabla interactiva de datos
+│   ├── data-prep-wizard.tsx   # Asistente de depuración
+│   ├── data-storytelling.tsx  # Narrativa automática
+│   ├── chat-interface.tsx     # Chat con IA
+│   ├── ml-analysis.tsx        # ML: clustering, regresión
+│   └── export-analysis.tsx    # Exportación de resultados
 ├── hooks/
-│   └── useDataAnalysis.ts # Hook de gestión de datos
+│   ├── useAuth.ts        # Autenticación Firebase
+│   └── useDataAnalysis.ts # Gestión de datos
 ├── lib/
+│   ├── firebase.ts       # Config Firebase
+│   ├── ml-utils.ts       # ML: regresión, clustering
 │   ├── types.ts          # Tipos TypeScript
-│   └── analysis-utils.ts # Utilidades de análisis
+│   ├── analysis-utils.ts # Utilidades de análisis
+│   └── visualization-3d.ts # Helpers 3D (Three.js)
+├── types/
+│   └── lucide-react.d.ts # Tipos manuales lucide-react
 ├── public/
 │   └── example-data.csv  # Datos de ejemplo
 └── package.json
