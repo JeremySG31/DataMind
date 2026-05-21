@@ -135,8 +135,11 @@ export function Visualization3D({ data, columns }: Visualization3DProps) {
     if (!window.Plotly || !plotRef.current) return;
     setIsRendering(true);
 
+    const el = plotRef.current;
+
     // Use requestAnimationFrame to avoid blocking the UI thread
     requestAnimationFrame(() => {
+      if (!el) { setIsRendering(false); return; }
       try {
         const { colorsArray, colorscale, showscale, sizeArray } = colorAndSizeConfig;
         let traces: any[] = [];
@@ -216,7 +219,7 @@ export function Visualization3D({ data, columns }: Visualization3DProps) {
         };
 
         // Plotly.react() reuses the existing DOM element — much faster than newPlot()
-        window.Plotly!.react(plotRef.current, traces, layout, config);
+        window.Plotly!.react(el, traces, layout, config);
       } catch (e) {
         console.error('Error rendering 3D plot:', e);
       } finally {

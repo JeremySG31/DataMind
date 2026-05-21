@@ -89,11 +89,13 @@ export function performPolynomialRegression(
       return row;
     });
     
-    // Usar ml.js para regresión multivariada
-    const coefficients = ml.Matrix.solve(
-      ml.Matrix.transpose(ml.Matrix(features)),
-      ml.Matrix.transpose(ml.Matrix([y]))
-    ).to1DArray();
+    // Usar ml-matrix para resolver los coeficientes vía ecuación normal: β = (X^T X)^{-1} X^T y
+    const X = new ml.Matrix(features);
+    const yRow = new ml.Matrix([y]);
+    const Xt = X.transpose();
+    const A = Xt.mmul(X);  // (d+1) × (d+1)
+    const B = Xt.mmul(yRow.transpose());  // (d+1) × 1
+    const coefficients = ml.MatrixLib.solve(A, B).to1DArray();
     
     const predictions = x.map(xi => {
       let pred = 0;
