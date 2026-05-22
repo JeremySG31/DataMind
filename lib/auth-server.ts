@@ -152,7 +152,7 @@ export async function verifyFirebaseIdToken(token: string | null): Promise<{ uid
     // 4. Importar clave y verificar firma
     const publicKey = await crypto.subtle.importKey(
       'jwk',
-      jwk,
+      jwk as JsonWebKey,
       {
         name: 'RSASSA-PKCS1-v1_5',
         hash: { name: 'SHA-256' }
