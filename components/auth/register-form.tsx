@@ -86,7 +86,7 @@ export function RegisterForm() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20"
           >
-            <CircleAlert className="h-5 w-5 mt-0.5 flex-shrink-0" />
+            <CircleAlert className="h-5 w-5 mt-0.5 shrink-0" />
             <p className="text-sm">{error || authError}</p>
           </motion.div>
         )}
@@ -203,7 +203,7 @@ export function RegisterForm() {
 
         <Button
           type="submit"
-          className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-2 mt-4"
+          className="w-full bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-2 mt-4"
           disabled={isLoading}
         >
           {isLoading ? (

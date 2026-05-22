@@ -204,7 +204,7 @@ export function LoginForm() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20"
                 >
-                  <CircleAlert className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <CircleAlert className="h-5 w-5 mt-0.5 shrink-0" />
                   <div className="text-sm flex-1">{getFriendlyError(activeError)}</div>
                 </motion.div>
               )}
@@ -262,7 +262,7 @@ export function LoginForm() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-2"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -276,9 +276,9 @@ export function LoginForm() {
               </Button>
 
               <div className="flex items-center gap-4 my-2">
-                <div className="h-[1px] flex-1 bg-muted-foreground/10" />
+                <div className="h-px flex-1 bg-muted-foreground/10" />
                 <span className="text-[10px] uppercase text-muted-foreground/60 font-bold tracking-wider">o</span>
-                <div className="h-[1px] flex-1 bg-muted-foreground/10" />
+                <div className="h-px flex-1 bg-muted-foreground/10" />
               </div>
 
               <Button
@@ -392,7 +392,7 @@ export function LoginForm() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20"
                   >
-                    <CircleAlert className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    <CircleAlert className="h-5 w-5 mt-0.5 shrink-0" />
                     <div className="text-sm flex-1">{getFriendlyError(activeError)}</div>
                   </motion.div>
                 )}
@@ -414,7 +414,7 @@ export function LoginForm() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-2.5 rounded-lg shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-2"
                   disabled={isLoading}
                 >
                   {isLoading ? (

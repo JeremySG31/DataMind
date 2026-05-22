@@ -129,7 +129,7 @@ Valor3,150,Más,2024
 ## 🛠️ Tecnologías
 
 - **Frontend**: Next.js 16 + React 19 + TypeScript
-- **UI**: shadcn/ui + Tailwind CSS
+- **UI**: shadcn/ui + Tailwind CSS v4
 - **Gráficos 2D**: Recharts
 - **Gráficos 3D**: Three.js + OrbitControls (WebGL)
 - **Animaciones**: Framer Motion

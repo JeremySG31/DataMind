@@ -61,3 +61,7 @@ __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
 .snowflake/
 .v0-trash/
+
+# Data files (prevent accidental commits of private datasets)
+*.csv
+!public/example-data.csv
