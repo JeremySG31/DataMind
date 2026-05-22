@@ -101,7 +101,7 @@ export function LandingPage() {
             <div className="p-2 rounded-lg bg-linear-to-br from-blue-600 to-blue-400">
               <Brain className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold font-display bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold font-display bg-linear-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
               DataMind
             </h1>
           </div>
@@ -159,7 +159,7 @@ export function LandingPage() {
             <>
               <h2 className="text-5xl sm:text-6xl font-bold font-display text-foreground mb-6 leading-tight">
                 ¡Hola de nuevo,{' '}
-                <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                   {user?.displayName || (user?.email ? user.email.split('@')[0] : 'Usuario')}!
                 </span>
               </h2>
@@ -174,7 +174,7 @@ export function LandingPage() {
               >
                 <Button
                   onClick={() => router.push('/dashboard')}
-                  className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer flex items-center gap-2"
+                  className="px-8 py-6 h-auto rounded-lg bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer flex items-center gap-2"
                 >
                   <LayoutDashboard className="h-5 w-5" />
                   Ir al Dashboard
@@ -193,7 +193,7 @@ export function LandingPage() {
             <>
               <h2 className="text-5xl sm:text-6xl font-bold font-display text-foreground mb-6 leading-tight">
                 ¡Bienvenido de vuelta a{' '}
-                <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                   DataMind!
                 </span>
               </h2>
@@ -208,7 +208,7 @@ export function LandingPage() {
               >
                 <Button
                   onClick={() => router.push('/auth/login')}
-                  className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer flex items-center gap-2"
+                  className="px-8 py-6 h-auto rounded-lg bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer flex items-center gap-2"
                 >
                   Iniciar Sesión
                   <ArrowRight className="h-5 w-5" />
@@ -226,7 +226,7 @@ export function LandingPage() {
             <>
               <h2 className="text-5xl sm:text-6xl font-bold font-display text-foreground mb-6 leading-tight">
                 Tu Analista de Datos
-                <span className="block bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                <span className="block bg-linear-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                   Impulsado por IA
                 </span>
               </h2>
@@ -242,7 +242,7 @@ export function LandingPage() {
               >
                 <Button
                   onClick={handleGuestAccess}
-                  className="px-8 py-6 h-auto rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer"
+                  className="px-8 py-6 h-auto rounded-lg bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/25 text-base sm:text-lg transition-all cursor-pointer"
                 >
                   Comenzar Gratis (Invitado)
                 </Button>
@@ -290,7 +290,7 @@ export function LandingPage() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="text-center"
         >
-          <div className="inline-block p-8 rounded-2xl border border-muted-foreground/20 bg-gradient-to-br from-blue-600/10 to-blue-400/5 backdrop-blur-sm">
+          <div className="inline-block p-8 rounded-2xl border border-muted-foreground/20 bg-linear-to-br from-blue-600/10 to-blue-400/5 backdrop-blur-sm">
             <p className="text-foreground mb-4">
               🚀 Completamente gratis. Potenciado por IA abierta.
             </p>

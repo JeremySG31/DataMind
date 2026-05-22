@@ -413,7 +413,7 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
   return (
     <div className="flex flex-col h-full gap-4">
       {/* Área de mensajes */}
-      <Card className="flex-1 overflow-hidden bg-background/50 border-muted-foreground/20 flex flex-col relative h-[500px]">
+      <Card className="flex-1 overflow-hidden bg-background/50 border-muted-foreground/20 flex flex-col relative h-125">
         {/* Decorative ambient light */}
         <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-blue-500/5 blur-3xl pointer-events-none" />
         
@@ -460,7 +460,7 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
                             : 'bg-muted/80 text-foreground rounded-tl-none border border-muted-foreground/10 backdrop-blur-sm'
                         }`}
                       >
-                        <div className="break-words space-y-1">
+                        <div className="wrap-break-word space-y-1">
                           {parseMarkdownToJSX(text)}
                         </div>
 
@@ -481,7 +481,7 @@ export function ChatInterface({ data, columns, initialQuestion, onClearQuestion 
                                 Visualización IA
                               </span>
                             </div>
-                            <div className="h-[180px] w-full mt-2">
+                            <div className="h-45 w-full mt-2">
                               {chart.chartType === 'line' && (
                                 <ResponsiveContainer width="100%" height="100%">
                                   <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>

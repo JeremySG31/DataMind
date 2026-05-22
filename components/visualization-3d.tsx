@@ -404,7 +404,7 @@ export function Visualization3D({ data, columns }: Visualization3DProps) {
           </div>
 
           <div className="relative border-t border-muted-foreground/10 pt-2">
-            <div ref={containerRef} className="w-full h-[560px] rounded-lg overflow-hidden cursor-grab active:cursor-grabbing" />
+            <div ref={containerRef} className="w-full h-140 rounded-lg overflow-hidden cursor-grab active:cursor-grabbing" />
           </div>
         </CardContent>
       </Card>

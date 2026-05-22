@@ -33,10 +33,10 @@ export function AppContainer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-400">
+              <div className="p-2 rounded-lg bg-linear-to-br from-blue-600 to-blue-400">
                 <span className="font-bold text-white text-lg">DM</span>
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-linear-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                 DataMind
               </h1>
             </div>

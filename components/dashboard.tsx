@@ -447,7 +447,7 @@ export function Dashboard({
         initial={{ opacity: 0, x: -25 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
-        className={`w-full lg:w-[280px] shrink-0 flex flex-col gap-4 border-b lg:border-b-0 lg:border-r border-muted-foreground/10 pb-6 lg:pb-0 lg:pr-6`}
+        className={`w-full lg:w-70 shrink-0 flex flex-col gap-4 border-b lg:border-b-0 lg:border-r border-muted-foreground/10 pb-6 lg:pb-0 lg:pr-6`}
       >
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold tracking-wider text-muted-foreground uppercase flex items-center gap-2 font-display">
@@ -460,7 +460,7 @@ export function Dashboard({
         </div>
 
         {/* Listado de archivos con scroll */}
-        <Card className="flex-1 bg-background/50 border-muted-foreground/20 p-3 overflow-y-auto max-h-[300px] lg:max-h-none flex flex-col gap-2 min-h-[160px] relative">
+        <Card className="flex-1 bg-background/50 border-muted-foreground/20 p-3 overflow-y-auto max-h-75 lg:max-h-none flex flex-col gap-2 min-h-40 relative">
           <AnimatePresence initial={false}>
             {datasets.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
@@ -541,7 +541,7 @@ export function Dashboard({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="p-4 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-950/20 to-indigo-950/10 text-blue-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md"
+            className="p-4 rounded-xl border border-blue-500/20 bg-linear-to-r from-blue-950/20 to-indigo-950/10 text-blue-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md"
           >
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-blue-500/10 shrink-0 mt-0.5 sm:mt-0">
@@ -724,7 +724,7 @@ export function Dashboard({
               transition={{ duration: 0.3 }}
               className="overflow-hidden"
             >
-              <Card className="p-5 border border-blue-500/20 bg-gradient-to-r from-blue-950/20 via-background to-blue-950/10 relative">
+              <Card className="p-5 border border-blue-500/20 bg-linear-to-r from-blue-950/20 via-background to-blue-950/10 relative">
                 <div className="absolute top-3 right-3 text-[10px] bg-blue-500/10 text-blue-400 font-semibold px-2 py-0.5 rounded-full border border-blue-500/20">
                   IA Diagnostic Active
                 </div>
@@ -984,7 +984,7 @@ export function Dashboard({
               )}
             </TabsContent>
 
-            <TabsContent value="chat" className="h-[600px]">
+            <TabsContent value="chat" className="h-150">
               {datasets.length === 0 ? (
                 <TabUploadPlaceholder
                   title="Conversa con tu Analista de IA"
@@ -1045,7 +1045,7 @@ function PremiumLockScreen({ title, description, icon }: { title: string, descri
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25 group w-full sm:w-auto cursor-pointer">
+          <Button asChild size="lg" className="bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25 group w-full sm:w-auto cursor-pointer">
             <Link href="/auth/register">
               <Sparkles className="mr-2 h-4 w-4" />
               Crear cuenta gratis

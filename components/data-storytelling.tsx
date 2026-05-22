@@ -83,7 +83,7 @@ export function DataStorytelling({
           <BookOpen className="h-4 w-4" />
           Narrativa de Datos
         </div>
-        <h2 className="text-2xl font-bold font-display bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
+        <h2 className="text-2xl font-bold font-display bg-linear-to-r from-blue-400 via-indigo-400 to-blue-600 bg-clip-text text-transparent">
           El Viaje de tu Dataset: Una Historia en Tres Actos
         </h2>
         <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
@@ -97,7 +97,7 @@ export function DataStorytelling({
         {/* ================= ACTO I: EL ORIGEN ================= */}
         <motion.div variants={itemVariants} className="relative">
           {/* Nodo Indicador */}
-          <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 p-1.5 rounded-full bg-background border-2 border-blue-500 text-blue-400 shadow-md shadow-blue-500/20 shrink-0 z-10">
+          <div className="absolute -left-8.75 sm:-left-10.75 top-1.5 p-1.5 rounded-full bg-background border-2 border-blue-500 text-blue-400 shadow-md shadow-blue-500/20 shrink-0 z-10">
             <Database className="h-4 w-4" />
           </div>
           
@@ -190,7 +190,7 @@ export function DataStorytelling({
         {/* ================= ACTO II: EL NUDO ================= */}
         <motion.div variants={itemVariants} className="relative">
           {/* Nodo Indicador */}
-          <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 p-1.5 rounded-full bg-background border-2 border-indigo-500 text-indigo-400 shadow-md shadow-indigo-500/20 shrink-0 z-10">
+          <div className="absolute -left-8.75 sm:-left-10.75 top-1.5 p-1.5 rounded-full bg-background border-2 border-indigo-500 text-indigo-400 shadow-md shadow-indigo-500/20 shrink-0 z-10">
             <Compass className="h-4 w-4 animate-spin-slow" />
           </div>
 
@@ -205,14 +205,14 @@ export function DataStorytelling({
             </div>
 
             {isAnalyzing ? (
-              <Card className="p-6 bg-background/50 border-muted-foreground/20 flex flex-col items-center justify-center text-center space-y-3 min-h-[160px]">
+              <Card className="p-6 bg-background/50 border-muted-foreground/20 flex flex-col items-center justify-center text-center space-y-3 min-h-40">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
                 <p className="text-xs text-muted-foreground">La IA está formulando la narrativa de insights...</p>
               </Card>
             ) : aiAnalysis ? (
               <div className="space-y-4">
                 {/* Resumen Principal de Storytelling */}
-                <Card className="p-5 bg-gradient-to-r from-indigo-950/15 via-background to-blue-950/10 border-indigo-500/20">
+                <Card className="p-5 bg-linear-to-r from-indigo-950/15 via-background to-blue-950/10 border-indigo-500/20">
                   <div className="flex gap-3">
                     <Sparkles className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
                     <div className="space-y-1">
@@ -233,7 +233,7 @@ export function DataStorytelling({
                       key={idx} 
                       className="p-4 bg-background/50 border-muted-foreground/15 hover:border-indigo-500/30 transition-all duration-300 flex gap-3 relative overflow-hidden group"
                     >
-                      <div className="absolute top-0 right-0 h-16 w-16 bg-gradient-to-tr from-indigo-500/0 to-indigo-500/5 rounded-bl-full pointer-events-none transition-all group-hover:scale-110"></div>
+                      <div className="absolute top-0 right-0 h-16 w-16 bg-linear-to-tr from-indigo-500/0 to-indigo-500/5 rounded-bl-full pointer-events-none transition-all group-hover:scale-110"></div>
                       <div className="h-6 w-6 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold text-xs shrink-0 font-display">
                         {idx + 1}
                       </div>
@@ -293,7 +293,7 @@ export function DataStorytelling({
                 </div>
               </div>
             ) : (
-              <Card className="p-6 bg-background/50 border-muted-foreground/20 flex flex-col items-center justify-center text-center space-y-3 min-h-[160px]">
+              <Card className="p-6 bg-background/50 border-muted-foreground/20 flex flex-col items-center justify-center text-center space-y-3 min-h-40">
                 <p className="text-xs text-muted-foreground">No hay análisis de IA disponible para este dataset.</p>
               </Card>
             )}
@@ -303,7 +303,7 @@ export function DataStorytelling({
         {/* ================= ACTO III: EL DESENLACE ================= */}
         <motion.div variants={itemVariants} className="relative">
           {/* Nodo Indicador */}
-          <div className="absolute -left-[35px] sm:-left-[43px] top-1.5 p-1.5 rounded-full bg-background border-2 border-emerald-500 text-emerald-400 shadow-md shadow-emerald-500/20 shrink-0 z-10">
+          <div className="absolute -left-8.75 sm:-left-10.75 top-1.5 p-1.5 rounded-full bg-background border-2 border-emerald-500 text-emerald-400 shadow-md shadow-emerald-500/20 shrink-0 z-10">
             <Target className="h-4 w-4" />
           </div>
 
@@ -325,7 +325,7 @@ export function DataStorytelling({
                   <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider font-display">
                     Objetivos de Negocio Sugeridos
                   </p>
-                  <p className="text-xs text-muted-foreground leading-relaxed leading-relaxed font-sans">
+                  <p className="text-xs text-muted-foreground leading-relaxed font-sans">
                     Para resolver los desafíos reales detectados en los datos, te recomendamos abordar estos planes de acción específicos:
                   </p>
                 </div>
@@ -396,7 +396,7 @@ export function DataStorytelling({
                 
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-muted/10 border border-muted-foreground/5 overflow-x-auto">
                   {/* Nodo 1: Ingesta */}
-                  <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 min-w-[150px] w-full lg:w-auto">
+                  <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 min-w-37.5 w-full lg:w-auto">
                     <Database className="h-6 w-6 text-blue-400" />
                     <span className="text-xs font-bold text-foreground">1. Ingesta</span>
                     <span className="text-[9px] text-muted-foreground max-w-32">
@@ -407,7 +407,7 @@ export function DataStorytelling({
                   <ArrowRight className="h-4 w-4 text-muted-foreground/40 hidden lg:block" />
 
                   {/* Nodo 2: Limpieza */}
-                  <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/10 min-w-[150px] w-full lg:w-auto">
+                  <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/10 min-w-37.5 w-full lg:w-auto">
                     <Sparkles className="h-6 w-6 text-yellow-400 animate-pulse" />
                     <span className="text-xs font-bold text-foreground">2. Limpieza</span>
                     <span className="text-[9px] text-muted-foreground max-w-32">
@@ -418,7 +418,7 @@ export function DataStorytelling({
                   <ArrowRight className="h-4 w-4 text-muted-foreground/40 hidden lg:block" />
 
                   {/* Nodo 3: Modelado ML */}
-                  <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 min-w-[150px] w-full lg:w-auto">
+                  <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 min-w-37.5 w-full lg:w-auto">
                     <Cpu className="h-6 w-6 text-purple-400" />
                     <span className="text-xs font-bold text-foreground">3. Modelado</span>
                     <span className="text-[9px] text-muted-foreground max-w-32">
@@ -429,7 +429,7 @@ export function DataStorytelling({
                   <ArrowRight className="h-4 w-4 text-muted-foreground/40 hidden lg:block" />
 
                   {/* Nodo 4: Resolución */}
-                  <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10 min-w-[150px] w-full lg:w-auto">
+                  <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10 min-w-37.5 w-full lg:w-auto">
                     <Target className="h-6 w-6 text-emerald-400" />
                     <span className="text-xs font-bold text-foreground">4. Resolución</span>
                     <span className="text-[9px] text-muted-foreground max-w-32">

@@ -19,7 +19,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="p-6 bg-gradient-to-br from-blue-600/10 to-blue-400/5 border-blue-500/20">
+        <Card className="p-6 bg-linear-to-br from-blue-600/10 to-blue-400/5 border-blue-500/20">
           <p className="text-lg text-foreground leading-relaxed">{analysis.summary}</p>
         </Card>
       </motion.div>
@@ -106,7 +106,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
                   transition={{ duration: 0.3, delay: 0.2 + idx * 0.05 }}
                   className="flex gap-2 text-sm text-foreground/90"
                 >
-                  <span className="text-amber-500 font-bold flex-shrink-0">•</span>
+                  <span className="text-amber-500 font-bold shrink-0">•</span>
                   <span>{insight}</span>
                 </motion.li>
               ))}

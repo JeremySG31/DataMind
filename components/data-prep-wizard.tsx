@@ -249,7 +249,7 @@ export function DataPrepWizard({
           {/* CONTROL SIDEBAR (left col) */}
           <div className="lg:col-span-5 space-y-4 pr-1">
             {/* AI Assistant Banner */}
-            <Card className="p-3 bg-gradient-to-r from-blue-950/20 to-purple-950/20 border-blue-500/20 flex flex-col gap-2 relative overflow-hidden">
+            <Card className="p-3 bg-linear-to-r from-blue-950/20 to-purple-950/20 border-blue-500/20 flex flex-col gap-2 relative overflow-hidden">
               <div className="absolute top-0 right-0 -mr-6 -mt-6 w-16 h-16 rounded-full bg-blue-500/10 blur-xl opacity-50 pointer-events-none" />
               <div className="flex items-center justify-between font-display">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-blue-400">
@@ -267,7 +267,7 @@ export function DataPrepWizard({
                 onClick={handleFetchAISuggestion}
                 disabled={isSuggesting}
                 size="sm"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-[11px] h-8 flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/10 cursor-pointer"
+                className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-[11px] h-8 flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/10 cursor-pointer"
               >
                 {isSuggesting ? (
                   <>
@@ -494,7 +494,7 @@ export function DataPrepWizard({
             </div>
 
             {/* Table Comparison View */}
-            <div className="flex-1 flex flex-col min-h-[220px]">
+            <div className="flex-1 flex flex-col min-h-55">
               <Tabs
                 value={activePreviewTab}
                 onValueChange={(val: any) => setActivePreviewTab(val)}
@@ -515,7 +515,7 @@ export function DataPrepWizard({
                   </TabsList>
                 </div>
 
-                <div className="flex-1 overflow-auto mt-2 max-h-[200px] border border-muted-foreground/10 rounded-md bg-background/30">
+                <div className="flex-1 overflow-auto mt-2 max-h-50 border border-muted-foreground/10 rounded-md bg-background/30">
                   <TabsContent value="original" className="m-0 h-full">
                     {originalPreview.length === 0 ? (
                       <div className="p-8 text-center text-xs text-muted-foreground">Sin registros</div>
@@ -576,7 +576,7 @@ function PreviewTable({ data, columns }: { data: DataRow[]; columns: string[] })
           {columns.map((col) => (
             <th
               key={col}
-              className="p-2 border-r border-muted-foreground/10 font-bold text-muted-foreground truncate max-w-[120px]"
+              className="p-2 border-r border-muted-foreground/10 font-bold text-muted-foreground truncate max-w-30"
             >
               {col}
             </th>
@@ -597,7 +597,7 @@ function PreviewTable({ data, columns }: { data: DataRow[]; columns: string[] })
               return (
                 <td
                   key={col}
-                  className={`p-2 border-r border-muted-foreground/5 truncate max-w-[120px] ${
+                  className={`p-2 border-r border-muted-foreground/5 truncate max-w-30 ${
                     isNull ? 'text-red-400 bg-red-500/5 font-semibold italic' : 'text-foreground'
                   }`}
                 >
