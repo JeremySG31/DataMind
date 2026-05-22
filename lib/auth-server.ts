@@ -168,8 +168,8 @@ export async function verifyFirebaseIdToken(token: string | null): Promise<{ uid
     const isValid = await crypto.subtle.verify(
       'RSASSA-PKCS1-v1_5',
       publicKey,
-      signature,
-      dataToVerify
+      signature as any,
+      dataToVerify as any
     );
 
     if (!isValid) {

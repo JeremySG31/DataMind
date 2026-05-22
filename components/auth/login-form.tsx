@@ -146,6 +146,24 @@ export function LoginForm() {
     if (errStr.includes('auth/popup-closed-by-user')) {
       return 'Inicio de sesión cancelado';
     }
+    if (errStr.includes('auth/popup-blocked')) {
+      return (
+        <div className="space-y-1 text-left">
+          <p className="font-semibold">Ventana emergente bloqueada</p>
+          <p className="text-xs opacity-90 leading-relaxed">
+            Tu navegador ha bloqueado la ventana emergente de Google.
+          </p>
+          <div className="text-xs pl-1 pt-1 space-y-1 opacity-90">
+            <p><strong>Cómo solucionarlo:</strong></p>
+            <ol className="list-decimal list-inside space-y-0.5">
+              <li>Busca el icono de "Ventanas emergentes bloqueadas" en la barra de direcciones (arriba a la derecha).</li>
+              <li>Haz clic y selecciona <strong>"Permitir siempre ventanas emergentes"</strong> para este sitio.</li>
+              <li>Vuelve a intentar iniciar sesión.</li>
+            </ol>
+          </div>
+        </div>
+      );
+    }
     return errStr;
   };
 
