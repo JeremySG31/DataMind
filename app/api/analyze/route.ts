@@ -83,7 +83,7 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openrouter('deepseek/deepseek-chat:free'),
+      model: openrouter('google/gemma-2-9b-it:free'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });
@@ -106,10 +106,10 @@ Responde en formato JSON con las claves: summary, insights (array), recommendedC
     }
 
     return NextResponse.json(analysisData);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en análisis:', error);
     return NextResponse.json(
-      { error: 'Error al procesar el análisis' },
+      { error: 'Error al procesar el análisis', details: error?.message || 'Error desconocido' },
       { status: 500 }
     );
   }

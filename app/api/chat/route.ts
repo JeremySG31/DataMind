@@ -129,7 +129,7 @@ Instrucciones de Respuesta:
 Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan con los nombres de las columnas provistas arriba. Si el gráfico es de barra o línea, la columna "y" debe ser numérica. No inventes nombres de columnas.`;
 
     const response = await generateText({
-      model: openrouter('deepseek/deepseek-chat:free'),
+      model: openrouter('google/gemma-2-9b-it:free'),
       prompt: prompt,
       maxOutputTokens: 2000, // Aumentado para permitir respuestas más largas
     });
@@ -137,10 +137,10 @@ Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan con los n
     return NextResponse.json({
       content: response.text,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en chat:', error);
     return NextResponse.json(
-      { error: 'Error al procesar la pregunta' },
+      { error: 'Error al procesar la pregunta', details: error?.message || 'Error desconocido' },
       { status: 500 }
     );
   }
