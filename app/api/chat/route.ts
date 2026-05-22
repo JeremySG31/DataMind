@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limiter';
 
 const chatInputSchema = z.object({
-  message: z.string().min(1, 'La pregunta no puede estar vacía').max(2000, 'Mensaje demasiado largo (máximo 2000 caracteres)'),
+  message: z.string().min(1, 'La pregunta no puede estar vacía').max(20000, 'Mensaje demasiado largo (máximo 20000 caracteres)'),
   // data is now a SAMPLE (max 50 rows) sent by the client — never the full dataset
   data: z.array(z.record(z.any())).min(1, 'El dataset debe tener al menos una fila').max(100),
   columns: z.array(z.string()).min(1, 'El dataset debe tener al menos una columna'),
@@ -15,7 +15,7 @@ const chatInputSchema = z.object({
   history: z.array(
     z.object({
       role: z.enum(['user', 'assistant', 'system']),
-      content: z.string().max(4000),
+      content: z.string().max(20000),
     })
   ).optional(),
 });
@@ -74,6 +74,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Limitar a 10 preguntas por conversación
+    const userMessageCount = (history || []).filter((m: any) => m.role === 'user').length;
+    if (userMessageCount >= 10) {
+      return NextResponse.json({
+        content: 'Has alcanzado el límite de 10 preguntas en este análisis. Por favor, haz clic en "Limpiar Workspace" o recarga la página para empezar una nueva sesión.',
+      });
+    }
+
     // Use client-provided stats if available, otherwise compute from sample
     const statsContext = columnStats
       ? JSON.stringify(columnStats)
@@ -85,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     // Build conversation history context
     const chatHistory = (history || [])
-      .slice(-4) // last 4 messages max
+      .slice(-10) // last 10 messages max
       .map((msg: any) => `${msg.role === 'user' ? 'Usuario' : 'Asistente'}: ${msg.content}`)
       .join('\n');
 
@@ -106,7 +114,7 @@ PREGUNTA DEL USUARIO:
 ${message}
 
 Instrucciones de Respuesta:
-1. Proporciona una respuesta clara, extremadamente concisa y útil basada en el análisis. Sé directo y ve al grano (máximo 2 párrafos cortos o 1 párrafo y una lista de viñetas breves). Evita rodeos, saludos o introducciones innecesarias.
+1. Proporciona una respuesta detallada, clara y útil basada en el análisis. No tienes límite de longitud, puedes ser tan extenso y profundo como los datos lo requieran. Evita saludos o introducciones innecesarias, ve directo al análisis profundo.
 2. Responde en español.
 3. SI consideras que la respuesta o los datos discutidos se verían mejor representados visualmente, incluye al final de tu respuesta (en una línea nueva y separada) un bloque JSON exacto con la configuración del gráfico recomendado. Este bloque JSON debe ser de la siguiente manera:
 \`\`\`json
@@ -121,9 +129,9 @@ Instrucciones de Respuesta:
 Nota: Asegúrate de que las claves de las columnas "x" e "y" coincidan con los nombres de las columnas provistas arriba. Si el gráfico es de barra o línea, la columna "y" debe ser numérica. No inventes nombres de columnas.`;
 
     const response = await generateText({
-      model: openrouter('openai/gpt-oss-120b:free'),
+      model: openrouter('deepseek/deepseek-chat:free'),
       prompt: prompt,
-      maxOutputTokens: 800, // Reducido para acelerar tiempos de respuesta
+      maxOutputTokens: 2000, // Aumentado para permitir respuestas más largas
     });
 
     return NextResponse.json({
