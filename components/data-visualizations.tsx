@@ -288,7 +288,7 @@ export function DataVisualizations({ data, columns }: DataVisualizationsProps) {
               <span>Optimización Activa: Graficando una muestra representativa de 300 de {data.length} filas para evitar latencia visual.</span>
             </div>
           )}
-          <div className="w-full h-[450px]">
+          <div className="w-full h-112.5">
             {chartType === 'line' && (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={visibleData}>

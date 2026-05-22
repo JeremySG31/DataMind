@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, Loader2, Eye, EyeOff, Check, X } from 'lucide-react';
+import { CircleAlert, Loader2, Eye, EyeOff, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function RegisterForm() {
@@ -86,7 +86,7 @@ export function RegisterForm() {
             animate={{ opacity: 1, y: 0 }}
             className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20"
           >
-            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+            <CircleAlert className="h-5 w-5 mt-0.5 flex-shrink-0" />
             <p className="text-sm">{error || authError}</p>
           </motion.div>
         )}

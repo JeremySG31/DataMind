@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BarChart3, Brain, Zap, MessageSquare, Upload, FileJson, LogOut, LayoutDashboard, UserCheck, ArrowRight } from 'lucide-react';
+import { ChartColumn, Brain, Zap, MessageSquare, Upload, FileJson, LogOut, LayoutDashboard, UserCheck, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/app/providers';
 import { useEffect, useState } from 'react';
@@ -41,7 +41,7 @@ export function LandingPage() {
       description: 'Obtén insights automáticos impulsados por inteligencia artificial',
     },
     {
-      icon: BarChart3,
+      icon: ChartColumn,
       title: 'Visualizaciones',
       description: 'Gráficos interactivos que se adaptan a tus datos automáticamente',
     },
@@ -87,7 +87,7 @@ export function LandingPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="min-h-screen bg-gradient-to-br from-background via-background to-blue-950/20"
+      className="min-h-screen bg-linear-to-br from-background via-background to-blue-950/20"
     >
       {/* Header */}
       <motion.header
@@ -98,7 +98,7 @@ export function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-blue-400">
+            <div className="p-2 rounded-lg bg-linear-to-br from-blue-600 to-blue-400">
               <Brain className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-2xl font-bold font-display bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">

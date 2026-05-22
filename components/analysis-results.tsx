@@ -4,7 +4,7 @@ import { AnalysisResult } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { formatNumber } from '@/lib/analysis-utils';
 import { motion } from 'framer-motion';
-import { TrendingUp, Zap, BarChart3 } from 'lucide-react';
+import { TrendingUp, Zap, ChartColumn } from 'lucide-react';
 
 interface AnalysisResultsProps {
   analysis: AnalysisResult;
@@ -124,7 +124,7 @@ export function AnalysisResults({ analysis }: AnalysisResultsProps) {
         >
           <Card className="p-6 border-muted-foreground/20">
             <h3 className="text-sm font-semibold mb-4 flex items-center gap-2 font-display">
-              <BarChart3 className="h-4 w-4 text-green-500" />
+              <ChartColumn className="h-4 w-4 text-green-500" />
               Visualizaciones Recomendadas
             </h3>
             <div className="flex flex-wrap gap-2">

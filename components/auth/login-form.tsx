@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, Loader2, Eye, EyeOff, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { CircleAlert, Loader2, Eye, EyeOff, ArrowLeft, CircleCheckBig } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function LoginForm() {
@@ -204,7 +204,7 @@ export function LoginForm() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20"
                 >
-                  <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <CircleAlert className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   <div className="text-sm flex-1">{getFriendlyError(activeError)}</div>
                 </motion.div>
               )}
@@ -364,7 +364,7 @@ export function LoginForm() {
                 className="space-y-4 text-center py-4 relative z-10"
               >
                 <div className="inline-flex items-center justify-center p-3 bg-green-500/10 text-green-400 rounded-full border border-green-500/20 mb-2">
-                  <CheckCircle2 className="h-8 w-8 animate-pulse" />
+                  <CircleCheckBig className="h-8 w-8 animate-pulse" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground">¡Correo enviado con éxito!</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
@@ -392,7 +392,7 @@ export function LoginForm() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-start gap-2 p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20"
                   >
-                    <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    <CircleAlert className="h-5 w-5 mt-0.5 flex-shrink-0" />
                     <div className="text-sm flex-1">{getFriendlyError(activeError)}</div>
                   </motion.div>
                 )}

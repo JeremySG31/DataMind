@@ -25,7 +25,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  CheckCircle2,
+  CircleCheckBig,
   AlertTriangle,
   Sparkles,
   ArrowUpDown,
@@ -558,7 +558,7 @@ export function DataPrepWizard({
             disabled={cleanedData.length === 0}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-lg shadow-blue-500/10 cursor-pointer"
           >
-            <CheckCircle2 className="h-4 w-4" />
+            <CircleCheckBig className="h-4 w-4" />
             Aplicar Limpieza y Ordenar
           </Button>
         </DialogFooter>

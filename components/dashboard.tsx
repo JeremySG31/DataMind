@@ -18,7 +18,7 @@ import { DataStorytelling } from './data-storytelling';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BarChart3, 
+  ChartColumn, 
   MessageSquare, 
   Table, 
   RotateCcw, 
@@ -32,7 +32,7 @@ import {
   Trash2, 
   Plus, 
   FileText, 
-  CheckCircle2, 
+  CircleCheckBig, 
   AlertTriangle, 
   Activity, 
   ChevronRight, 
@@ -586,7 +586,7 @@ export function Dashboard({
           >
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-emerald-500/10 shrink-0">
-                <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                <CircleCheckBig className="h-5 w-5 text-emerald-400" />
               </div>
               <div className="space-y-0.5">
                 <h4 className="text-sm font-bold text-foreground">✨ ¡Dataset verificado e impecable!</h4>
@@ -628,7 +628,7 @@ export function Dashboard({
                   </span>
                 ) : (
                   <span className="text-emerald-500 font-medium flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 inline" />
+                    <CircleCheckBig className="h-3.5 w-3.5 inline" />
                     100% Datos completos
                   </span>
                 )}
@@ -784,7 +784,7 @@ export function Dashboard({
               value="visualizations"
               className="px-0 py-3 border-b-2 rounded-none data-[state=active]:border-blue-600 data-[state=active]:bg-transparent font-medium font-display"
             >
-              <BarChart3 className="mr-2 h-4 w-4" />
+              <ChartColumn className="mr-2 h-4 w-4" />
               Visualizaciones
             </TabsTrigger>
             <TabsTrigger

@@ -14,7 +14,7 @@ import {
   HelpCircle, 
   BrainCircuit, 
   TrendingUp, 
-  CheckCircle2 
+  CircleCheckBig 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {

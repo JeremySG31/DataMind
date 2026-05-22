@@ -12,11 +12,11 @@ import {
   Sparkles, 
   Cpu, 
   ArrowRight, 
-  CheckCircle2, 
+  CircleCheckBig, 
   AlertTriangle,
   ChevronRight,
-  BarChart3,
-  PieChart
+  ChartColumn,
+  ChartPie
 } from 'lucide-react';
 import { DataContext, AnalysisResult } from '@/lib/types';
 
@@ -157,7 +157,7 @@ export function DataStorytelling({
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 text-emerald-500 font-semibold">
-                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      <CircleCheckBig className="h-4 w-4 shrink-0" />
                       <span>Datos 100% completos</span>
                     </div>
                   )}
@@ -255,9 +255,9 @@ export function DataStorytelling({
                         let Icon = TrendingUp;
                         const lower = chartText.toLowerCase();
                         if (lower.includes('barras') || lower.includes('barra') || lower.includes('bar')) {
-                          Icon = BarChart3;
+                          Icon = ChartColumn;
                         } else if (lower.includes('torta') || lower.includes('pastel') || lower.includes('pie') || lower.includes('gráfico circular')) {
-                          Icon = PieChart;
+                          Icon = ChartPie;
                         } else if (lower.includes('dispersión') || lower.includes('scatter') || lower.includes('puntos')) {
                           Icon = Compass;
                         }
@@ -399,7 +399,7 @@ export function DataStorytelling({
                   <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 min-w-[150px] w-full lg:w-auto">
                     <Database className="h-6 w-6 text-blue-400" />
                     <span className="text-xs font-bold text-foreground">1. Ingesta</span>
-                    <span className="text-[9px] text-muted-foreground max-w-[130px]">
+                    <span className="text-[9px] text-muted-foreground max-w-32">
                       {dataContext.filename || 'Archivo'} cargado con {dataContext.rowCount} registros.
                     </span>
                   </div>
@@ -410,7 +410,7 @@ export function DataStorytelling({
                   <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/10 min-w-[150px] w-full lg:w-auto">
                     <Sparkles className="h-6 w-6 text-yellow-400 animate-pulse" />
                     <span className="text-xs font-bold text-foreground">2. Limpieza</span>
-                    <span className="text-[9px] text-muted-foreground max-w-[130px]">
+                    <span className="text-[9px] text-muted-foreground max-w-32">
                       Puntuación de {quality.qualityScore}% de integridad.
                     </span>
                   </div>
@@ -421,7 +421,7 @@ export function DataStorytelling({
                   <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 min-w-[150px] w-full lg:w-auto">
                     <Cpu className="h-6 w-6 text-purple-400" />
                     <span className="text-xs font-bold text-foreground">3. Modelado</span>
-                    <span className="text-[9px] text-muted-foreground max-w-[130px]">
+                    <span className="text-[9px] text-muted-foreground max-w-32">
                       Algoritmos de ML listos para segmentación/regresión.
                     </span>
                   </div>
@@ -432,7 +432,7 @@ export function DataStorytelling({
                   <div className="flex flex-col items-center text-center space-y-1.5 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10 min-w-[150px] w-full lg:w-auto">
                     <Target className="h-6 w-6 text-emerald-400" />
                     <span className="text-xs font-bold text-foreground">4. Resolución</span>
-                    <span className="text-[9px] text-muted-foreground max-w-[130px]">
+                    <span className="text-[9px] text-muted-foreground max-w-32">
                       {businessGoals.length} planes estratégicos ejecutables.
                     </span>
                   </div>
