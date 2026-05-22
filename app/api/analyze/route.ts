@@ -83,7 +83,7 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openrouter('openai/gpt-oss-120b:free'),
+      model: openrouter('google/gemma-2-9b-it:free'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });

@@ -84,7 +84,7 @@ Responde ÚNICAMENTE en formato JSON plano con la siguiente estructura (no agreg
 }`;
 
     const response = await generateText({
-      model: openrouter('openai/gpt-oss-120b:free'),
+      model: openrouter('google/gemma-2-9b-it:free'),
       prompt: prompt,
       maxOutputTokens: 1000,
     });
