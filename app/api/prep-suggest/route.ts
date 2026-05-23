@@ -84,7 +84,7 @@ Responde ÚNICAMENTE en formato JSON plano con la siguiente estructura (no agreg
 }`;
 
     const response = await generateText({
-      model: openrouter('minimax/minimax-m2.5:free'),
+      model: openrouter('openrouter/free'),
       prompt: prompt,
       maxOutputTokens: 1000,
     });

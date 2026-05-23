@@ -83,7 +83,7 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openrouter('minimax/minimax-m2.5:free'),
+      model: openrouter('openrouter/free'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });
