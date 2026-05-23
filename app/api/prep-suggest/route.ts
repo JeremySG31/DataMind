@@ -84,7 +84,7 @@ Responde ÚNICAMENTE en formato JSON plano con la siguiente estructura (no agreg
 }`;
 
     const response = await generateText({
-      model: openrouter('google/gemma-2-9b-it:free'),
+      model: openrouter('minimax/minimax-m2.5:free'),
       prompt: prompt,
       maxOutputTokens: 1000,
     });

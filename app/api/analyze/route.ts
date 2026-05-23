@@ -83,7 +83,7 @@ Por favor proporciona:
 Responde en formato JSON con las claves: summary, insights (array), recommendedCharts (array)`;
 
     const response = await generateText({
-      model: openrouter('google/gemma-2-9b-it:free'),
+      model: openrouter('minimax/minimax-m2.5:free'),
       prompt: prompt,
       maxOutputTokens: 2000,
     });
