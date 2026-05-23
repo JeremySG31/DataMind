@@ -27,8 +27,8 @@ export const metadata: Metadata = {
   description: 'Analista de datos con IA. Carga datos, haz preguntas y obtén insights automáticos',
   generator: 'v0.app',
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/icon.svg?v=2',
+    apple: '/icon.svg?v=2',
   },
 }
 
